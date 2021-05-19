@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<!-- Title -->
+		<title>{page_title}</title>
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="{resource_dir}/bootstrap.min.css">
+
+		<!-- Modules -->
+		<script src="{resource_dir}/jquery-3.2.1.slim.min.js"></script>
+		<link href="{resource_dir}/video-js.css" rel="stylesheet" />
+	</head>
+
+	<body class="container-fluid">
+
+		<!-- Name and contact -->
+		<div class="row">
+			<div class="ml-2 pt-1 col-md-auto">
+				<div><h3>{page_title}</h3></div>
+			</div>
+			<div class="col text-primary" style="text-align: right; margin-top: 0.75rem;">
+				<a href="bibtex.bib">[BibTex]</a>
+			</div>
+		</div>
+
+{insert_html}
+
+		<!-- Optional JavaScript -->
+		<!-- Popper.js, then Bootstrap JS -->
+		<script src="{resource_dir}/popper.min.js"></script>
+		<script src="{resource_dir}/bootstrap.min.js"></script>
+		<script src="{resource_dir}/video.js"></script>
+	</body>
+</html>

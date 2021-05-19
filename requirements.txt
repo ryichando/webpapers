@@ -1,0 +1,4 @@
+unidecode
+pillow
+pybtex
+PyPDF2
