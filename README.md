@@ -2,6 +2,10 @@
 
 https://ryichando.graphics/webpapers_sample/
 
+# Why this thing is good?
+
+It's free, simple and fast. Everything is on the web. You can access the whole contents from anywhere (even with a smart phone) if you put it on a private server. You can also share with collaborators.
+
 # How to use
 
 For each paper, create a directory containing
@@ -32,6 +36,6 @@ docker-compose run --rm webpapers python3 main.py papers
 
 `index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.
 
-# Simple Rules
+# Some rules
 
-  - When multiple PDFs are provided, `main.pdf` should be the primary paper PDF.
+  - When multiple PDFs are provided, `main.pdf` should be the primary paper PDF
