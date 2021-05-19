@@ -34,7 +34,7 @@ docker-compose build
 docker-compose run --rm webpapers python3 main.py papers
 ```
 
-`index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.
+This can take a while depending how many papers to process. When complete, `index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.
 
 # Some rules
 
