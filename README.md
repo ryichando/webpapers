@@ -1,6 +1,6 @@
 # What it looks like?
 
-https://public.ryichando.graphics/~ryich/webpapers/example/
+https://public.ryichando.graphics/~ryich/webpapers/example/sample.html
 
 # Why this thing is good?
 
@@ -26,6 +26,8 @@ Put them into the `papers` directory.
     │   ├── video.mp4           # Video file
     |   └── ...                 # Supplemental materials
     └── ...
+
+A corresponding layout for the example page can be seen at https://public.ryichando.graphics/~ryich/webpapers/example/
 
 Next, run the following commands
 
