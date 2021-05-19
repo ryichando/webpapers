@@ -5,11 +5,13 @@ https://ryichando.graphics/webpapers_sample/
 # How to use
 
 For each paper, create a directory containing
+
   - A paper PDF, ending with `.pdf`
   - A bibtex file, ending with `.bib`
   - Supplemental materials
-Put them into the `papers` directory. For example,
-    
+
+Put them into the `papers` directory.
+
 ### A directory layout example
 
     papers
@@ -17,7 +19,7 @@ Put them into the `papers` directory. For example,
     ├── authors2021             # Some recognizable short name
     │   ├── main.pdf            # Paper main PDF file
     │   ├── citation.bib        # BibTex file containing the paper info
-    │   ├── unit                # Video file
+    │   ├── video.mp4           # Video file
     |   └── ...                 # Supplemental materials
     └── ...
 
@@ -32,4 +34,4 @@ docker-compose run --rm webpapers python3 main.py papers
 
 # Simple Rules
 
-  - When multiple PDFs are provided, `main.pdf` is set as the primary paper PDF.
+  - When multiple PDFs are provided, `main.pdf` should be the primary paper PDF.
