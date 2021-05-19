@@ -21,8 +21,8 @@ Put them into the `papers` directory.
     papers
     ├── ...
     ├── authors2021             # Some recognizable unique short name
-    │   ├── main.pdf            # Paper main PDF file
-    │   ├── citation.bib        # BibTex file containing the paper info
+    │   ├── main.pdf            # Paper main PDF file (it does not have to be main.pdf if a single PDF is given)
+    │   ├── citation.bib        # BibTex file containing the paper info (any name ending with .bib is fine)
     │   ├── video.mp4           # Video file
     |   └── ...                 # Supplemental materials
     └── ...
