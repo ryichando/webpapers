@@ -21,7 +21,7 @@
 # SOFTWARE.
 #
 # モジュールのインポート
-import os, sys, configparser, subprocess, unidecode, argparse
+import os, sys, configparser, subprocess, unidecode, argparse, shutil
 from PIL import Image
 from pybtex.database import parse_file # pip3 install pybtex (https://pybtex.org/)
 from shlex import quote
@@ -30,6 +30,7 @@ import pikepdf
 # 目的のディレクトリを読み込む
 parser = argparse.ArgumentParser()
 parser.add_argument('root_dir', help='Root directory')
+parser.add_argument('--clean', action='store_true')
 args = parser.parse_args()
 root_dir = args.root_dir
 #
@@ -43,6 +44,24 @@ image_dimension_limit = int(config['DEFAULT']['image_dimension_limit'])
 image_page_limit = int(config['DEFAULT']['image_page_limit'])
 convert_video = config['DEFAULT']['convert_video'] == 'yes'
 resource_dir = 'resources'
+#
+# もし clean フラグが指定されたら、全ての生成されたデータを削除する
+if args.clean:
+	print( 'Cleaning...' )
+	for dir in os.listdir(root_dir):
+		if dir in ['__pycache__',resource_dir]:
+			print( 'Deleting {}/{}...'.format(root_dir,dir))
+			shutil.rmtree(root_dir+'/'+dir)
+		elif dir in ['bibtex.bib','index.html']:
+			file = root_dir+'/'+dir
+			print( 'Deleting {}...'.format(file))
+			os.remove(file)
+		elif os.path.isdir(root_dir+'/'+dir):
+			for subdir in os.listdir(root_dir+'/'+dir):
+				if subdir in ['thumbnails','images','converted']:
+					print( 'Deleting {}/{}/{}...'.format(root_dir,dir,subdir))
+					shutil.rmtree(root_dir+'/'+dir+'/'+subdir)
+	sys.exit(0)
 #
 # サポートされる動画のタイプを列挙する
 video_types = [ '.mp4', '.avi', '.mov', '.flv', '.mpg', '.mpeg', '.m4v' ]
