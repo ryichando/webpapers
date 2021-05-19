@@ -39,3 +39,10 @@ This can take a while depending how many papers to process. When complete, `inde
 # Some rules
 
   - When multiple PDFs are provided, `main.pdf` should be the primary paper PDF
+
+# Cleaning
+
+```bash
+docker-compose run --rm webpapers python3 main.py papers --clean
+```
+to clean generated files.
