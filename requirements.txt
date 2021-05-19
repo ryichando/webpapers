@@ -1,4 +1,4 @@
 unidecode
 pillow
 pybtex
-PyPDF2
+pikepdf

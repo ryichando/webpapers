@@ -25,7 +25,7 @@ import os, sys, configparser, subprocess, unidecode, argparse
 from PIL import Image
 from pybtex.database import parse_file # pip3 install pybtex (https://pybtex.org/)
 from shlex import quote
-from PyPDF2 import PdfFileReader
+import pikepdf
 #
 # 目的のディレクトリを読み込む
 parser = argparse.ArgumentParser()
@@ -149,8 +149,7 @@ for dir in os.listdir(root_dir):
 					pdf = file
 					break
 		#
-		pdf_reader = PdfFileReader(open(mkpath(dir,pdf),"rb"))
-		info = pdf_reader.getDocumentInfo()
+		info = pikepdf.open(mkpath(dir,pdf))
 		#
 		# 動画 ファイルが mp4 でないか、あるいは h264 コーデックでエンコードされていなければ、変換する
 		if convert_video:
@@ -191,7 +190,7 @@ for dir in os.listdir(root_dir):
 				if 'title' in fields:
 					title = remove_curly_bracket(fields['title'])
 				else:
-					title = info.title
+					title = info.open_metadata()['dc:title']
 		#
 		if os.path.exists(mkpath(dir,pdf)):
 			#
@@ -211,7 +210,7 @@ for dir in os.listdir(root_dir):
 							os.rename(path,good_path)
 			#
 			# PDF から画像を抽出する
-			if not os.path.exists(mkpath(dir,'images')) and pdf_reader.getNumPages() <= image_page_limit:
+			if not os.path.exists(mkpath(dir,'images')) and len(info.pages) <= image_page_limit:
 				print( "Extracting images for {}...".format(dir))
 				os.mkdir(mkpath(dir,'images'))
 				os.system("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(dir)),quote(pdf)))
@@ -297,8 +296,7 @@ for year in reversed(range(min_year,max_year+1)):
 			entry += '</div>\n'
 			#
 			bib_key = ''
-			pdf_reader = PdfFileReader(open(mkpath(dir,pdf),"rb"))
-			info = pdf_reader.getDocumentInfo()
+			info = pikepdf.open(mkpath(dir,pdf))
 			table = {}
 			if bib:
 				#
@@ -340,9 +338,9 @@ for year in reversed(range(min_year,max_year+1)):
 				print( 'WARNING: BibTex was not found for {}.'.format(dir))
 			#
 			if not 'author' in table:
-				table['author'] = remove_special_chars(info.author)
+				table['author'] = remove_special_chars(info.open_metadata()['dc:creator'])
 			if not 'title' in table:
-				table['title'] = info.title
+				table['title'] = info.open_metadata()['dc:title']
 			#
 			entry += '<div class="col p-2 pl-3">\n'
 			#
