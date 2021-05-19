@@ -40,6 +40,7 @@ page_title = config['DEFAULT']['page_title']
 thumbnail_page_count = int(config['DEFAULT']['thumbnail_page_count'])
 image_filesize_limit = int(config['DEFAULT']['image_filesize_limit'])
 image_dimension_limit = int(config['DEFAULT']['image_dimension_limit'])
+image_page_limit = int(config['DEFAULT']['image_page_limit'])
 convert_video = config['DEFAULT']['convert_video'] == 'yes'
 resource_dir = 'resources'
 #
