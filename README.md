@@ -4,7 +4,7 @@ https://ryichando.graphics/webpapers_sample/
 
 # Why this thing is good?
 
-Everything is on the web; you can access the whole contents from anywhere (even with a smart phone when you taking a walk) if you put it on a private web server (e.g., NAS). You may also share with collaborators.
+Everything is on the web; you can access the whole contents from anywhere (even with a smart phone when you are taking a walk) if you put it on a private web server (e.g., NAS). You may also share with collaborators.
 
 # How to use
 
@@ -34,7 +34,7 @@ docker-compose build
 docker-compose run --rm webpapers python3 main.py papers
 ```
 
-`index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.
+This can take a while depending how many papers to process. When complete, `index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.
 
 # Some rules
 
