@@ -20,7 +20,7 @@ Put them into the `papers` directory.
 
     papers
     ├── ...
-    ├── authors2021             # Some recognizable short name
+    ├── authors2021             # Some recognizable unique short name
     │   ├── main.pdf            # Paper main PDF file
     │   ├── citation.bib        # BibTex file containing the paper info
     │   ├── video.mp4           # Video file
