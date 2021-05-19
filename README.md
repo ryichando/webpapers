@@ -4,7 +4,7 @@ https://ryichando.graphics/webpapers_sample/
 
 # Why this thing is good?
 
-It's free, simple and fast. Everything is on the web. You can access the whole contents from anywhere (even with a smart phone) if you put it on a private server. You can also share with collaborators.
+It's free, simple and fast. Everything is on the web; you can access the whole contents from anywhere (even with a smart phone) if you put it on a private server. You may also share with collaborators.
 
 # How to use
 
