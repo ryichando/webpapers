@@ -1,6 +1,6 @@
 # What it looks like?
 
-https://ryichando.graphics/webpapers_sample/
+https://research.ryichando.graphics/webpapers/example
 
 # Why this thing is good?
 
