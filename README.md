@@ -4,7 +4,7 @@ https://public.ryichando.graphics/~ryich/webpapers/example/sample.html
 
 # Why this thing is good?
 
-Everything is on the web; you can access the whole contents from anywhere (even with a smart phone when you are taking a walk) if you put it on a private web server (e.g., VPS/NAS). You may also share with collaborators.
+Everything is on the web; you can access the whole contents from anywhere (even with a smart phone when you are taking a walk) if you put it on a private web server (e.g., VPS/NAS). You may also share with collaborators. Of course you can locally use it if you do not own a privte server.
 
 # How to use
 
