@@ -32,8 +32,8 @@ A corresponding layout for the example page can be seen at https://public.ryicha
 Next, run the following commands
 
 ```bash
-docker-compose build
-docker-compose run --rm webpapers python3 main.py papers
+docker build . -t webpapers
+docker run -v ${PWD}:/root --rm webpapers papers
 ```
 
 This can take a while depending on how many papers you have. When complete, `index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.

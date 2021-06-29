@@ -4,7 +4,7 @@
 #
 import os, sys, configparser, subprocess, unidecode, argparse, shutil, pikepdf, pdfdump, base64, nltk
 from PIL import Image
-from pybtex.database import parse_file # pip3 install pybtex (https://pybtex.org/)
+from pybtex.database import parse_file
 from shlex import quote
 #
 def replace_text_by_dictionary( text, dict ):
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 			if dir in ['__pycache__',resource_dir]:
 				print( 'Deleting {}/{}...'.format(root_dir,dir))
 				shutil.rmtree(root_dir+'/'+dir)
-			elif dir in ['bibtex.bib','index.html']:
+			elif dir in ['bibtex.bib','index.html','data.js']:
 				file = root_dir+'/'+dir
 				print( 'Deleting {}...'.format(file))
 				os.remove(file)
