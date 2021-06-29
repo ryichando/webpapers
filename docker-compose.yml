@@ -1,9 +1,0 @@
-version: '3'
-services:
-  webpapers:
-    build: .
-    container_name: 'webpapers'
-    working_dir: '/root'
-    tty: true
-    volumes:
-      - ${PWD}:/root

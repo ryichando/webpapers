@@ -5,9 +5,8 @@ RUN apt-get update
 RUN apt-get -y install ffmpeg poppler-utils
 ENV TERM xterm
 
-COPY requirements.txt /root
-WORKDIR /root
+ENV PYTHONDONTWRITEBYTECODE 1
+RUN pip install unidecode pillow pybtex pikepdf nltk
 
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
-RUN pip install -r requirements.txt
+WORKDIR /root
+ENTRYPOINT ["/usr/local/bin/python3","-u","main.py"]
