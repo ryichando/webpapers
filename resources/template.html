@@ -133,6 +133,7 @@
 							min = Math.max(0,min-window_size);
 							max = Math.min(words.length,max+window_size);
 							text = words.slice(min,max).join(' ');
+							if( max < words.length ) text += '...';
 							hide = false;
 							year_found_count += 1;
 							//
