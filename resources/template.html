@@ -71,12 +71,20 @@
 				return escape_chars[match];
 				}});
 			}}
+			function refresh () {{
+				document.querySelectorAll('.search-result').forEach(e => e.remove());
+				for (const [key, value] of Object.entries(data)) {{
+					document.getElementById(value.year.toString()).hidden = false;
+					document.getElementById(key).hidden = false;
+				}}
+			}}
 			let send_search = function () {{
 				$("#status").text('Processing...');
 				document.querySelectorAll('.search-result').forEach(e => e.remove());
 				document.getElementById("status").hidden = false;
 				let keywords = $("#keywords-field").val();
 				if( ! keywords.length ) {{
+					refresh();
 					for (const [key, value] of Object.entries(data)) {{
 						document.getElementById(value.year.toString()).hidden = false;
 						document.getElementById(key).hidden = false;
@@ -89,6 +97,7 @@
 					if ( word in word_table ) {{
 						indices.push(word_table[word])
 					}} else {{
+						refresh();
 						$("#status").text('Not found');
 						return;
 					}}
@@ -157,6 +166,7 @@
 				}} else if( num_found > 1 ) {{ 
 					$("#status").text('Found '+num_found+' occurrences.');
 				}} else {{
+					refresh();
 					$("#status").text('Not found');
 				}}
 			}};

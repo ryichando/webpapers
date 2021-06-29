@@ -416,6 +416,7 @@ if __name__ == '__main__':
 				indices = []
 				#
 				# Build table data
+				print( 'Analyzing {}...'.format(dir))
 				for line in lines:
 					line_indices = []
 					head_pos = 0
