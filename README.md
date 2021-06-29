@@ -45,6 +45,6 @@ This can take a while depending on how many papers you have. When complete, `ind
 # Cleaning
 
 ```bash
-docker-compose run --rm webpapers python3 main.py papers --clean
+docker run -v ${PWD}:/root --rm webpapers papers --clean
 ```
 to clean generated files.
