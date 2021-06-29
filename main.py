@@ -2,7 +2,7 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, configparser, subprocess, unidecode, argparse, shutil, pikepdf
+import os, sys, configparser, subprocess, unidecode, argparse, shutil, pikepdf, pdfdump, base64, nltk
 from PIL import Image
 from pybtex.database import parse_file # pip3 install pybtex (https://pybtex.org/)
 from shlex import quote
@@ -30,6 +30,8 @@ def remove_special_chars( text ):
 	return replace_text_by_dictionary(text,{
 		'{' : '',
 		'}' : '',
+		'[' : '',
+		']' : '',
 		'\\' : '',
 		'/' : '',
 		'.' : '',
@@ -40,6 +42,26 @@ def remove_special_chars( text ):
 #
 def mkpath(dir,file=''):
 	return root_dir+'/'+dir+'/'+file
+#
+def load_dictionary( dirpath ):
+	with open(dirpath+'/words.txt') as f:
+		dictionary = set(f.read().split())
+	with open(dirpath+'/words_alpha.txt') as f:
+		dictionary = dictionary.union(set(f.read().split()))
+	return dictionary
+#
+def clean( lines, dictionary ):
+	#
+	results = []
+	for line in lines:
+		count = 0
+		for word in line.split():
+			if word in dictionary:
+				count += 1
+		if count:
+			results.append(line)
+	#
+	return results
 #
 if __name__ == '__main__':
 	#
@@ -261,13 +283,19 @@ if __name__ == '__main__':
 		sys.exit(0)
 	#
 	insert_html = ''
+	insert_js = 'data = {};\n'
 	min_year = min(database.keys())
 	max_year = max(database.keys())
 	video_id = 0
+	word_index = 0
+	word_dictionary = load_dictionary('resources/words')
+	registered_stem = {}
+	registered_words = {}
+	stemmer = nltk.PorterStemmer()
 	for year in reversed(range(min_year,max_year+1)):
 		if year in database:
 			#
-			insert_html += '\n<div class="row pl-4" style="background-color: LightGray;">{}</div>\n'.format(year if year > 0 else 'Unknown')
+			insert_html += '\n<div class="row pl-4" style="background-color: LightGray;" id="{}">{}</div>\n'.format(year,year)
 			#
 			for paper in database[year]:
 				#
@@ -276,7 +304,7 @@ if __name__ == '__main__':
 				bib = paper['bib']
 				#
 				entry = '\n<!-------------- starting {} -------------->\n'.format(dir)
-				entry += '<div class="row">\n'
+				entry += '<div class="row" id="{}">\n'.format(dir)
 				entry += '<div class="w-20 p-2">\n'
 				#
 				entry += "<a href=\"{}\" target=\"_blank\">\n".format(dir+'/'+pdf)
@@ -293,7 +321,6 @@ if __name__ == '__main__':
 							dummy.save(dummy_path,"PNG")
 						entry += "<img src=\"{}\" width=\"125\" height=\"170\" class=\"border border\"/>\n".format(dummy_path_rel)
 				entry += "</a>\n"
-				#
 				entry += '</div>\n'
 				#
 				bib_key = ''
@@ -385,8 +412,51 @@ if __name__ == '__main__':
 				entry += '</div>\n'
 				entry += '</div>\n'
 				#
+				lines = pdfdump.dump(mkpath(dir,pdf))
+				indices = []
+				#
+				# Build table data
+				for line in lines:
+					line_indices = []
+					head_pos = 0
+					for _word in line.split(' '):
+						for word in remove_special_chars(_word).split('-'):
+							normalized_word = None
+							if word.lower() in word_dictionary:
+								normalized_word = stemmer.stem(word.lower())
+								key = word.lower()
+							elif word.isupper() and word.isalpha():
+								normalized_word = stemmer.stem(word)
+								key = word.lower()
+							if normalized_word:
+								if not normalized_word in registered_stem.keys():
+									word_index += 1
+									registered_stem[normalized_word] = word_index
+									registered_words[key] = word_index
+									line_indices.append((word_index,head_pos))
+								elif not word in registered_words.keys():
+									idx = registered_stem[normalized_word]
+									registered_words[key] = idx
+									line_indices.append((idx,head_pos))
+						head_pos += 1
+					indices.append(line_indices)
+				#
+				insert_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
+					dir,
+					year,
+					','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
+					','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
+				)
+				#
 				entry += '<!-------------- ending {} -------------->\n'.format(dir)
 				insert_html += entry
+
+	# Write word table
+	insert_js += 'let word_table = {{\n{}\n}}'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+	#
+	# Generate Javascript file
+	with open(root_dir+'/data.js','w') as file:
+		file.write(insert_js)
 	#
 	# Generate HTML
 	context = {
