@@ -428,16 +428,17 @@ if __name__ == '__main__':
 							elif word.isupper() and word.isalpha():
 								normalized_word = stemmer.stem(word)
 								key = word.lower()
+							stem_idx = 0
 							if normalized_word:
-								if not normalized_word in registered_stem.keys():
+								if normalized_word in registered_stem.keys():
+									stem_idx = registered_stem[normalized_word]
+								else:
 									word_index += 1
+									stem_idx = word_index
 									registered_stem[normalized_word] = word_index
-									registered_words[key] = word_index
-									line_indices.append((word_index,head_pos))
-								elif not word in registered_words.keys():
-									idx = registered_stem[normalized_word]
-									registered_words[key] = idx
-									line_indices.append((idx,head_pos))
+								if not key in registered_words.keys():
+									registered_words[key] = stem_idx
+							line_indices.append((stem_idx,head_pos))
 						head_pos += 1
 					indices.append(line_indices)
 				#
