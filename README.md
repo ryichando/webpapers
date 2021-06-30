@@ -1,3 +1,7 @@
+<img src="https://raw.githubusercontent.com/ryichando/webpapers/master/resources/logo.svg" alt="logo" width="250">
+
+A web-based paper organizer.
+
 # What it looks like?
 
 https://public.ryichando.graphics/~ryich/webpapers/example/sample.html
