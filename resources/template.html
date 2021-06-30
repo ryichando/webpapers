@@ -90,7 +90,7 @@
 						break;
 					}}
 				}}
-				if( ! keywords.length ) {{
+				if( keywords.length == 0 || keywords[0] == "" ) {{
 					refresh();
 					for (const [key, value] of Object.entries(data)) {{
 						document.getElementById(value.year.toString()).hidden = false;
