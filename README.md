@@ -18,6 +18,13 @@ Paper texts are easy to explore using a new realtime search. Everything operates
 
 # Setting up
 
+Clone the whole project by:
+
+```bash
+git clone https://github.com/ryichando/webpapers.git
+cd webpapers
+```
+
 For each paper, create a directory containing
 
   - A paper PDF, ending with `.pdf`
@@ -51,7 +58,7 @@ This can take a while depending on how many papers you have. When complete, `ind
 # Some rules
 
   - When multiple PDFs are provided, `main.pdf` should be the primary paper PDF
-  - If you want to search only from titles, start with "title:" and type keywords
+  - If you want to search only from titles, start with `title:` followed by a space, and type keywords
   - You may turn off the search by specifying in the `config.ini`
 ```
 enable_search = no
