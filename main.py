@@ -462,10 +462,10 @@ if __name__ == '__main__':
 		#
 		# Write word table
 		insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
-		#
-		# Generate Javascript file
-		with open(root_dir+'/data.js','w') as file:
-			file.write(insert_js)
+	#
+	# Generate Javascript file
+	with open(root_dir+'/data.js','w') as file:
+		file.write(insert_js)
 	#
 	# Generate HTML
 	context = {
