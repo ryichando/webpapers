@@ -37,7 +37,7 @@
 				</div>
 				<div class="input-group" {search_hide}>
 					<input type="text" class="form-control" placeholder="Type your keywords" aria-label="search keywords" aria-describedby="button-addon2" id="keywords-field">
-					<div class="input-group-append">
+					<div class="input-group-append" {button_hide}>
 						<button type="button" class="btn btn-outline-secondary" id="search-button">Search</button>
 					</div>
 				</div>
@@ -81,7 +81,15 @@
 				$("#status").text('Processing...');
 				document.querySelectorAll('.search-result').forEach(e => e.remove());
 				document.getElementById("status").hidden = false;
-				let keywords = $("#keywords-field").val();
+				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
+				let search_from = 'contents';
+				for (const word of keywords ) {{
+					if( word == 'title:' ) {{
+						search_from = 'title';
+						keywords.splice(keywords.indexOf('title:'),1);
+						break;
+					}}
+				}}
 				if( ! keywords.length ) {{
 					refresh();
 					for (const [key, value] of Object.entries(data)) {{
@@ -91,14 +99,17 @@
 					document.getElementById("status").hidden = true;
 					return;
 				}}
-				let indices = []
-				for (const word of keywords.toLowerCase().split(' ')) {{
-					if ( word in word_table ) {{
-						indices.push(word_table[word])
-					}} else {{
-						refresh();
-						$("#status").text('Not found');
-						return;
+				let indices = [];
+				if( search_from == 'contents' ) {{
+					let search_from = 'contents';
+					for (const word of keywords ) {{
+						if ( word in word_table ) {{
+							indices.push(word_table[word])
+						}} else {{
+							refresh();
+							$("#status").text('Not found');
+							return;
+						}}
 					}}
 				}}
 				let current_year = 0;
@@ -115,44 +126,60 @@
 						document.getElementById(year.toString()).hidden = false;
 					}}
 					let hide = true;
-					for( let i=0; i<value.index.length; ++i ) {{
-						let min = value.index[i].length;
-						let max = 0;
-						let window_size = 10;
-						let highlights = [];
-						for( const idx of indices ) {{
-							let pos = -1;
-							for( let j=0; j<value.index[i].length; ++j ) {{
-								if( value.index[i][j][0] == idx ) {{
-									pos = value.index[i][j][1];
-									break;
+					if( search_from == 'contents' ) {{
+						for( let i=0; i<value.index.length; ++i ) {{
+							let min = value.index[i].length;
+							let max = 0;
+							let window_size = 10;
+							let highlights = [];
+							for( const idx of indices ) {{
+								let pos = -1;
+								for( let j=0; j<value.index[i].length; ++j ) {{
+									if( value.index[i][j][0] == idx ) {{
+										pos = value.index[i][j][1];
+										break;
+									}}
 								}}
+								min = Math.min(min,pos)
+								max = Math.max(max,pos)
+								if( min < 0 ) break;
+								highlights.push(pos);
 							}}
-							min = Math.min(min,pos)
-							max = Math.max(max,pos)
-							if( min < 0 ) break;
-							highlights.push(pos);
+							if( min >= 0 ) {{
+								let words = html_escape(atob(value.words[i])).split(' ');
+								for( const pos of highlights ) {{
+									words[pos] = '<em>'+words[pos]+'</em>';
+								}}
+								min = Math.max(0,min-window_size);
+								max = Math.min(words.length,max+window_size);
+								text = words.slice(min,max).join(' ');
+								if( max < words.length ) text += '...';
+								hide = false;
+								year_found_count += 1;
+								//
+								let text_row = document.createElement('div');
+								text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
+								let text_content = document.createElement('div');
+								text_content.className = 'col';
+								text_content.innerHTML = text;
+								text_row.appendChild(text_content);
+								insert_after(text_row,document.getElementById(key))
+								num_found += 1;
+							}}
 						}}
-						if( min >= 0 ) {{
-							let words = html_escape(atob(value.words[i])).split(' ');
-							for( const pos of highlights ) {{
-								words[pos] = '<em>'+words[pos]+'</em>';
+					}} else if ( search_from == 'title' ) {{
+						let found_all = true;
+						let title = document.getElementById(key+'-title').textContent.toLowerCase();
+						for (const word of keywords ) {{
+							if( title.indexOf(word) < 0 ) {{
+								found_all = false;
+								break;
 							}}
-							min = Math.max(0,min-window_size);
-							max = Math.min(words.length,max+window_size);
-							text = words.slice(min,max).join(' ');
-							if( max < words.length ) text += '...';
-							hide = false;
-							year_found_count += 1;
-							//
-							let text_row = document.createElement('div');
-							text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
-							let text_content = document.createElement('div');
-							text_content.className = 'col';
-							text_content.innerHTML = text;
-							text_row.appendChild(text_content);
-							insert_after(text_row,document.getElementById(key))
+						}}
+						if( found_all ) {{
 							num_found += 1;
+							year_found_count += 1;
+							hide = false;
 						}}
 					}}
 					document.getElementById(key).hidden = hide;
@@ -173,7 +200,9 @@
 				send_search();
 			}});
 			$("#keywords-field").on('keyup', function (e) {{
-				if (e.key === 'Enter' || e.keyCode === 13) {{
+				if( {realtime_search} ) {{
+					send_search();
+				}} else if (e.key === 'Enter' || e.keyCode === 13) {{
 					send_search();
 				}}
 			}});

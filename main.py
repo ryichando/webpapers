@@ -30,6 +30,8 @@ def remove_special_chars( text ):
 	return replace_text_by_dictionary(text,{
 		'{' : '',
 		'}' : '',
+		'(' : '',
+		')' : '',
 		'[' : '',
 		']' : '',
 		'\\' : '',
@@ -82,6 +84,7 @@ if __name__ == '__main__':
 	image_page_limit = int(config['DEFAULT']['image_page_limit'])
 	convert_video = config['DEFAULT']['convert_video'] == 'yes'
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
+	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -470,6 +473,8 @@ if __name__ == '__main__':
 		'page_title' : page_title,
 		'insert_html': insert_html,
 		'resource_dir' : resource_dir,
+		'button_hide' : 'hidden' if realtime_search else '',
+		'realtime_search' : 'true' if realtime_search else 'false',
 	}
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()
