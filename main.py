@@ -4,7 +4,7 @@
 #
 import os, sys, configparser, subprocess, unidecode, argparse, shutil, pikepdf, pdfdump, base64, nltk
 from PIL import Image
-from pybtex.database import parse_file
+from pybtex.database import parse_file, BibliographyData, Entry
 from shlex import quote
 #
 def replace_text_by_dictionary( text, dict ):
@@ -81,6 +81,7 @@ if __name__ == '__main__':
 	image_dimension_limit = int(config['DEFAULT']['image_dimension_limit'])
 	image_page_limit = int(config['DEFAULT']['image_page_limit'])
 	convert_video = config['DEFAULT']['convert_video'] == 'yes'
+	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -329,6 +330,9 @@ if __name__ == '__main__':
 				if bib:
 					#
 					bib_data = parse_file(mkpath(dir,bib))
+					bib_data = BibliographyData({
+						dir : bib_data.entries[list(bib_data.entries)[0]]
+					})
 					bib_key = list(bib_data.entries)[0]
 					bib_entry = bib_data.entries[bib_key]
 					fields = bib_entry.fields
@@ -399,10 +403,7 @@ if __name__ == '__main__':
 							'thumbnail' : 'test.jpg',
 						})
 				#
-				if bib_key:
-					entry += '<a href=\"#{0}\" style="padding-right: 0.75rem; white-space: pre;">[{0}]</a>\n'.format(bib_key)
-				#
-				entry += '<a href=\"{0}\" target=\"_blank\" style="padding-right: 0.75rem; white-space: pre;">({1})</a>\n'.format(dir,dir)
+				entry += '<a href=\"{0}\" target=\"_blank\" style="padding-right: 0.75rem; white-space: pre;">[Files]</a>\n'.format(dir)
 				#
 				image_path = mkpath(dir)+'/images/index.html'
 				if os.path.exists(image_path):
@@ -416,52 +417,56 @@ if __name__ == '__main__':
 				indices = []
 				#
 				# Build table data
-				print( 'Analyzing {}...'.format(dir))
-				for line in lines:
-					line_indices = []
-					head_pos = 0
-					for _word in line.split(' '):
-						for word in remove_special_chars(_word).split('-'):
-							normalized_word = None
-							if word.lower() in word_dictionary:
-								normalized_word = stemmer.stem(word.lower())
-								key = word.lower()
-							elif word.isupper() and word.isalpha():
-								normalized_word = stemmer.stem(word)
-								key = word.lower()
-							stem_idx = 0
-							if normalized_word:
-								if normalized_word in registered_stem.keys():
-									stem_idx = registered_stem[normalized_word]
-								else:
-									word_index += 1
-									stem_idx = word_index
-									registered_stem[normalized_word] = word_index
-								if not key in registered_words.keys():
-									registered_words[key] = stem_idx
-							line_indices.append((stem_idx,head_pos))
-						head_pos += 1
-					indices.append(line_indices)
-				#
-				insert_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
-					dir,
-					year,
-					','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
-					','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
-				)
+				if enable_search:
+					print( 'Analyzing {}...'.format(dir))
+					for line in lines:
+						line_indices = []
+						head_pos = 0
+						for _word in line.split(' '):
+							for word in remove_special_chars(_word).split('-'):
+								normalized_word = None
+								if word.lower() in word_dictionary:
+									normalized_word = stemmer.stem(word.lower())
+									key = word.lower()
+								elif word.isupper() and word.isalpha():
+									normalized_word = stemmer.stem(word)
+									key = word.lower()
+								stem_idx = 0
+								if normalized_word:
+									if normalized_word in registered_stem.keys():
+										stem_idx = registered_stem[normalized_word]
+									else:
+										word_index += 1
+										stem_idx = word_index
+										registered_stem[normalized_word] = word_index
+									if not key in registered_words.keys():
+										registered_words[key] = stem_idx
+								line_indices.append((stem_idx,head_pos))
+							head_pos += 1
+						indices.append(line_indices)
+					#
+					insert_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
+						dir,
+						year,
+						','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
+						','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
+					)
 				#
 				entry += '<!-------------- ending {} -------------->\n'.format(dir)
 				insert_html += entry
 
-	# Write word table
-	insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
-	#
-	# Generate Javascript file
-	with open(root_dir+'/data.js','w') as file:
-		file.write(insert_js)
+	if enable_search:
+		#
+		# Write word table
+		insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+		#
+		# Generate Javascript file
+		with open(root_dir+'/data.js','w') as file:
+			file.write(insert_js)
 	#
 	# Generate HTML
 	context = {
+		'search_hide' : '' if enable_search else 'hidden',
 		'page_title' : page_title,
 		'insert_html': insert_html,
 		'resource_dir' : resource_dir,
@@ -472,18 +477,18 @@ if __name__ == '__main__':
 			file.write(data.format_map(context))
 	#
 	# Generate BibTeX
-	bibtex = ''
+	entries = {}
 	for year in reversed(range(min_year,max_year+1)):
 		if year in database:
 			for paper in database[year]:
 				dir = paper['dir']
 				bib = paper['bib']
 				if bib:
-					with open(mkpath(dir,bib),'r') as file:
-						bibtex += file.read()
-						bibtex += '\n\n'
+					bib_data = parse_file(mkpath(dir,bib))
+					entries[dir] = bib_data.entries[list(bib_data.entries)[0]]
+	#
 	with open(root_dir+'/bibtex.bib','w') as file:
-			file.write(bibtex)
+			BibliographyData(entries).to_file(file)
 	#
 	# Copy resources
 	if not os.path.exists(root_dir+'/'+resource_dir):
