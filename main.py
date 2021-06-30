@@ -377,7 +377,7 @@ if __name__ == '__main__':
 				entry += '<div class="col p-2 pl-3">\n'
 				#
 				if 'title' in table:
-					entry += "<div id=\"{0}\"><h5>{1}</h5></div>\n".format(bib_key,table['title'])
+					entry += "<div id=\"{0}-title\"><h5>{1}</h5></div>\n".format(bib_key,table['title'])
 				if 'journal' in table:
 					entry += "<div>{} ({})</div>\n".format(table['journal'],year)
 				if 'author' in table:
