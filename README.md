@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/ryichando/webpapers/master/resources/logo.svg" alt="logo" width="250">
+<img src="https://raw.githubusercontent.com/ryichando/webpapers/master/resources/webpapers_logo.svg" alt="logo" width="250">
 
 A web-based paper organizer.
 
