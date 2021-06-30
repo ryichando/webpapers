@@ -48,6 +48,14 @@ This can take a while depending on how many papers you have. When complete, `ind
 
   - When multiple PDFs are provided, `main.pdf` should be the primary paper PDF
   - If you want to search only from titles, start with "title:" and type keywords
+  - You may turn off the search by specifying in the `config.ini`
+```
+enable_search = no
+```
+  - You may switch to classical "search" button by specifying in the `config.ini`
+```
+realtime_search = no
+```
 
 # Cleaning
 
