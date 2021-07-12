@@ -4,7 +4,7 @@
 #
 import os, sys, configparser, subprocess, unidecode, argparse, shutil, pikepdf, pdfdump, base64, nltk
 from PIL import Image
-from pybtex.database import parse_file, BibliographyData, Entry
+from pybtex.database import parse_file, BibliographyData
 from shlex import quote
 #
 def replace_text_by_dictionary( text, dict ):
@@ -160,9 +160,12 @@ if __name__ == '__main__':
 			#
 			# File list
 			bib = ''
+			doi = ''
 			year = 0
 			title = 'Unknown'
 			pdf = 'main.pdf'
+			authors = 'Unknown'
+			journal = 'Unknown'
 			#
 			for file in os.listdir(mkpath(dir)):
 				for key in video_types:
@@ -211,13 +214,43 @@ if __name__ == '__main__':
 				if file.endswith('.bib'):
 					bib = file
 					bib_data = parse_file(mkpath(dir,bib))
-					fields = bib_data.entries[list(bib_data.entries)[0]].fields
+					bib_entry = bib_data.entries[list(bib_data.entries)[0]]
+					fields = bib_entry.fields
+					if 'doi' in fields:
+						doi = fields['doi']
 					if 'year' in fields:
 						year = int(fields['year'])
 					if 'title' in fields:
 						title = remove_curly_bracket(fields['title'])
 					else:
 						title = info.open_metadata()['dc:title']
+					#
+					persons = bib_entry.persons
+					#
+					if 'author' in persons:
+						authors_str = ''
+						for i,person in enumerate(persons['author']):
+							if len(person.first_names):
+								for j,name in enumerate(person.first_names):
+									if j == 0:
+										authors_str += ' '
+									authors_str += name
+							if len(person.middle_names):
+								for name in person.middle_names:
+									authors_str += ' '+remove_special_chars(name)
+							if len(person.last_names):
+								for name in person.last_names:
+									authors_str += ' '+remove_special_chars(name)
+							if i < len(persons['author'])-1:
+								authors_str += ' and ' if i == len(persons['author'])-2 else ', '
+						if not authors_str:
+							print( 'WARNING: {} is missing author info.'.format(dir))
+						authors = remove_special_chars(authors_str)
+					#
+					if 'journal' in fields:
+						journal = fix_jornal(fields['journal'])
+					elif 'booktitle' in fields:
+						journal = fix_jornal(fields['booktitle'])
 			#
 			# Process a PDF
 			if os.path.exists(mkpath(dir,pdf)):
@@ -277,7 +310,16 @@ if __name__ == '__main__':
 							file.write(data.format_map(context))
 			#
 			# Register to the database
-			e = {'pdf':pdf,'dir':dir,'bib':bib}
+			e = {
+				'year' : year,
+				'pdf' : pdf,
+				'dir' : dir,
+				'bib' : bib,
+				'doi' : doi,
+				'title' : title,
+				'author' : authors,
+				'journal' : journal,
+			}
 			if year in database:
 				database[year].append(e)
 			else:
@@ -296,6 +338,7 @@ if __name__ == '__main__':
 	registered_stem = {}
 	registered_words = {}
 	stemmer = nltk.PorterStemmer()
+	#
 	for year in reversed(range(min_year,max_year+1)):
 		if year in database:
 			#
@@ -305,7 +348,6 @@ if __name__ == '__main__':
 				#
 				pdf = paper['pdf']
 				dir = paper['dir']
-				bib = paper['bib']
 				#
 				entry = '\n<!-------------- starting {} -------------->\n'.format(dir)
 				entry += '<div class="row" id="{}">\n'.format(dir)
@@ -327,64 +369,14 @@ if __name__ == '__main__':
 				entry += "</a>\n"
 				entry += '</div>\n'
 				#
-				bib_key = ''
-				info = pikepdf.open(mkpath(dir,pdf))
-				table = {}
-				if bib:
-					#
-					bib_data = parse_file(mkpath(dir,bib))
-					bib_data = BibliographyData({
-						dir : bib_data.entries[list(bib_data.entries)[0]]
-					})
-					bib_key = list(bib_data.entries)[0]
-					bib_entry = bib_data.entries[bib_key]
-					fields = bib_entry.fields
-					persons = bib_entry.persons
-					#
-					if 'author' in persons:
-						authors_str = ''
-						for i,person in enumerate(persons['author']):
-							if len(person.first_names):
-								for j,name in enumerate(person.first_names):
-									if j == 0:
-										authors_str += ' '
-									authors_str += name
-							if len(person.middle_names):
-								for name in person.middle_names:
-									authors_str += ' '+remove_special_chars(name)
-							if len(person.last_names):
-								for name in person.last_names:
-									authors_str += ' '+remove_special_chars(name)
-							if i < len(persons['author'])-1:
-								authors_str += ' and ' if i == len(persons['author'])-2 else ', '
-						if not authors_str:
-							print( 'WARNING: {} is missing author info.'.format(dir))
-						table['author'] = remove_special_chars(authors_str)
-					#
-					table['bibkey'] = bib_key
-					#
-					if 'title' in fields:
-						table['title'] = remove_curly_bracket(fields['title'])
-					if 'journal' in fields:
-						table['journal'] = fix_jornal(fields['journal'])
-					elif 'booktitle' in fields:
-						table['journal'] = fix_jornal(fields['booktitle'])
-				else:
-					print( 'WARNING: BibTeX was not found for {}.'.format(dir))
-				#
-				if not 'author' in table:
-					table['author'] = remove_special_chars(info.open_metadata()['dc:creator'])
-				if not 'title' in table:
-					table['title'] = info.open_metadata()['dc:title']
-				#
 				entry += '<div class="col p-2 pl-3">\n'
 				#
-				if 'title' in table:
-					entry += "<div id=\"{0}-title\"><h5>{1}</h5></div>\n".format(bib_key,table['title'])
-				if 'journal' in table:
-					entry += "<div>{} ({})</div>\n".format(table['journal'],year)
-				if 'author' in table:
-					entry += "<div>{}</div>\n".format(table['author'])
+				if 'title' in paper:
+					entry += "<div id=\"{0}-title\"><h5>{1}</h5></div>\n".format(dir,paper['title'])
+				if 'journal' in paper:
+					entry += "<div>{} ({})</div>\n".format(paper['journal'],year)
+				if 'author' in paper:
+					entry += "<div>{}</div>\n".format(paper['author'])
 				#
 				entry += '<div class="pt-3">\n'
 				for file in os.listdir(mkpath(dir)):
@@ -411,7 +403,7 @@ if __name__ == '__main__':
 				image_path = mkpath(dir)+'/images/index.html'
 				if os.path.exists(image_path):
 					entry += '<a href=\"{0}\" target=\"_blank\" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'.format(dir+'/images/index.html')
-
+				#
 				entry += '</div>\n'
 				entry += '</div>\n'
 				entry += '</div>\n'

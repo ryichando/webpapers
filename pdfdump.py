@@ -1,6 +1,6 @@
 import re, subprocess, argparse
 #
-def dump( path ):
+def dump( path, stop_words=['references'] ):
 	#
 	cmd = 'pdftotext -enc ASCII7 -q -nopgbrk {} -'.format(path)
 	proc = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
@@ -14,8 +14,11 @@ def dump( path ):
 	#
 	for paragraph in paragraphs:
 		for line in paragraph.split('\n'):
-			if 'references' in line.lower():
-				stop = True
+			for stop_word in stop_words:
+				if stop_word.lower() in line.lower():
+					stop = True
+					break
+			if stop:
 				break
 			if line:
 				buffer.append(line)
