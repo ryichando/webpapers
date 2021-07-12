@@ -218,12 +218,20 @@ if __name__ == '__main__':
 					fields = bib_entry.fields
 					if 'doi' in fields:
 						doi = fields['doi']
+					else:
+						print( 'WARNING: doi not found ')
 					if 'year' in fields:
 						year = int(fields['year'])
+					else:
+						print( 'WARNING: year not found ')
 					if 'title' in fields:
 						title = remove_curly_bracket(fields['title'])
 					else:
-						title = info.open_metadata()['dc:title']
+						meta_data = info.open_metadata()
+						if 'dc:title' in meta_data:
+							title = info.open_metadata()['dc:title']
+						else:
+							print( 'WARNING: title not found ')
 					#
 					persons = bib_entry.persons
 					#
