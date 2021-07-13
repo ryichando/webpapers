@@ -26,6 +26,9 @@ def fix_jornal( title ):
 		'Comput. Graph. Forum' : 'Computer Graphics Forum',
 	}))
 #
+def run_command( cmd ):
+	subprocess.call(cmd,shell=True)
+#
 def remove_special_chars( text ):
 	return replace_text_by_dictionary(text,{
 		'{' : '',
@@ -92,16 +95,16 @@ if __name__ == '__main__':
 		print( 'Cleaning...' )
 		for dir in os.listdir(root_dir):
 			if dir in ['__pycache__',resource_dir]:
-				print( 'Deleting {}/{}...'.format(root_dir,dir))
+				print( f'Deleting {root_dir}/{dir}...' )
 				shutil.rmtree(root_dir+'/'+dir)
 			elif dir in ['bibtex.bib','index.html','data.js']:
 				file = root_dir+'/'+dir
-				print( 'Deleting {}...'.format(file))
+				print( f'Deleting {file}...')
 				os.remove(file)
 			elif os.path.isdir(root_dir+'/'+dir):
 				for subdir in os.listdir(root_dir+'/'+dir):
 					if subdir in ['thumbnails','images','converted','analysis']:
-						print( 'Deleting {}/{}/{}...'.format(root_dir,dir,subdir))
+						print(f'Deleting {root_dir}/{dir}/{subdir}...')
 						shutil.rmtree(root_dir+'/'+dir+'/'+subdir)
 		sys.exit(0)
 	#
@@ -158,7 +161,7 @@ if __name__ == '__main__':
 			#
 			print("Processing {}...".format(dir))
 			#
-			# File list
+			# Information list
 			bib = ''
 			doi = ''
 			year = 0
@@ -187,27 +190,27 @@ if __name__ == '__main__':
 					convert_flag = False
 					for key in video_types:
 						if file.endswith(key):
-							cmd = 'ffprobe -v quiet -show_streams -i {}'.format(mkpath(dir,quote(file)))
+							cmd = f'ffprobe -v quiet -show_streams -i {mkpath(dir,quote(file))}'
 							result = subprocess.check_output(cmd.split())
 							if '[STREAM]' in str(result) and not 'codec_name=unknown' in str(result):
 								if key == '.mp4':
 									if 'h264' in str(result):
-										print( '{}/{}/{} has codec h264'.format(root_dir,dir,file))
+										print( f'{root_dir}/{dir}/{file} has codec h264' )
 									else:
-										print( '{}/{}/{} does not have codec h264'.format(root_dir,dir,file))
+										print( f'{root_dir}/{dir}/{file} does not have codec h264' )
 										convert_flag = True
 								else:
-									print( '{}/{}/{} is not mp4'.format(root_dir,dir,file))
+									print( f'{root_dir}/{dir}/{file} is not mp4' )
 									convert_flag = True
 							else:
-								print( '{}/{}/{} does not have any video stream'.format(root_dir,dir,file))
+								print( f'{root_dir}/{dir}/{file} does not have any video stream' )
 							break
 					if convert_flag:
 						if not os.path.exists(mkpath(dir,'converted')):
 							os.mkdir(mkpath(dir,'converted'))
-						dest_file = '{}/{}/converted/{}.mp4'.format(root_dir,dir,file)
+						dest_file = f'{root_dir}/{dir}/converted/{file}.mp4'
 						if not os.path.exists(dest_file):
-							os.system('ffmpeg -i {}/{}/{} -pix_fmt yuv420p -b:v 12000k -vcodec libx264 -acodec aac {}'.format(root_dir,dir,file,dest_file))
+							run_command(f'ffmpeg -i {root_dir}/{dir}/{file} -pix_fmt yuv420p -b:v 12000k -vcodec libx264 -acodec aac {dest_file}')
 			#
 			# Import BibTex
 			for file in os.listdir(mkpath(dir)):
@@ -252,7 +255,7 @@ if __name__ == '__main__':
 							if i < len(persons['author'])-1:
 								authors_str += ' and ' if i == len(persons['author'])-2 else ', '
 						if not authors_str:
-							print( 'WARNING: {} is missing author info.'.format(dir))
+							print( f'WARNING: {dir} is missing author info.')
 						authors = remove_special_chars(authors_str)
 					#
 					if 'journal' in fields:
@@ -267,24 +270,32 @@ if __name__ == '__main__':
 				if not os.path.exists(mkpath(dir,'thumbnails')):
 					print( "Generating thumbnails for {}...".format(dir))
 					os.mkdir(mkpath(dir,'thumbnails'))
-					os.system('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(dir)),thumbnail_page_count,quote(pdf)))
+					run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(dir)),thumbnail_page_count,quote(pdf)))
 					for i in range(thumbnail_page_count):
-						good_path = mkpath(dir)+'/thumbnails/thumbnail-{}.jpg'.format(i+1)
+						good_path = mkpath(dir,f'thumbnails/thumbnail-{i+1}.jpg')
+						processed = False
 						for j in range(4):
 							zeros = ''
 							for k in range(j+1):
+								path = mkpath(dir,f'thumbnails/thumbnail-{zeros}{i+1}.jpg')
 								zeros += '0'
-							path = mkpath(dir)+'/thumbnails/thumbnail-{}{}.jpg'.format(zeros,i+1)
-							if os.path.exists(path):
-								os.rename(path,good_path)
+								if os.path.exists(path):
+									os.rename(path,good_path)
+									processed = True
+									break
+							if processed:
+								break
+						if not processed:
+							dummy = Image.new("RGB",(16,16),(255, 255, 255))
+							dummy.save(good_path,"PNG")
 				#
 				# Extract images from PDF
 				if not os.path.exists(mkpath(dir,'images')) and len(info.pages) <= image_page_limit:
-					print( "Extracting images for {}...".format(dir))
+					print( f"Extracting images for {dir}..." )
 					os.mkdir(mkpath(dir,'images'))
-					os.system("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(dir)),quote(pdf)))
-					os.system("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(dir))))
-					os.system("find {0}/images -type f ! -name '*.jpg' -delete".format(quote(mkpath(dir))))
+					run_command("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(dir)),quote(pdf)))
+					run_command("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(dir))))
+					run_command("find {0}/images -type f ! -name '*.jpg' -delete".format(quote(mkpath(dir))))
 					#
 					# Remove if the either the file size is too small or the resolution is too low
 					remove_list = []
@@ -350,51 +361,46 @@ if __name__ == '__main__':
 	for year in reversed(range(min_year,max_year+1)):
 		if year in database:
 			#
-			insert_html += '\n<div class="row pl-4" style="background-color: LightGray;" id="{}">{}</div>\n'.format(year,year)
+			insert_html += f'\n<div class="row pl-4" style="background-color: LightGray;" id="{year}">{year}</div>\n'
 			#
 			for paper in database[year]:
 				#
 				pdf = paper['pdf']
 				dir = paper['dir']
 				#
-				entry = '\n<!-------------- starting {} -------------->\n'.format(dir)
-				entry += '<div class="row" id="{}">\n'.format(dir)
+				entry = f'\n<!-------------- starting {dir} -------------->\n'
+				entry += f'<div class="row" id="{dir}">\n'
 				entry += '<div class="w-20 p-2">\n'
 				#
-				entry += "<a href=\"{}\" target=\"_blank\">\n".format(dir+'/'+pdf)
+				entry += f'<a href="{dir+"/"+pdf}" target="_blank">\n'
 				for i in range(thumbnail_page_count):
-					thumbnail = mkpath(dir)+'/thumbnails/thumbnail-{}.jpg'.format(i+1)
-					thumbnail_rel = dir+'/thumbnails/thumbnail-{}.jpg'.format(i+1)
+					thumbnail = mkpath(dir)+f'/thumbnails/thumbnail-{i+1}.jpg'
+					thumbnail_rel = dir+f'/thumbnails/thumbnail-{i+1}.jpg'
 					if os.path.exists(thumbnail):
-						entry += "<img src=\"{}\" width=\"125\" height=\"170\" class=\"border border\"/>\n".format(thumbnail_rel)
+						entry += f'<img src="{thumbnail_rel}" width="125" height="170" class="border border"/>\n'
 					else:
-						dummy_path = mkpath(dir)+'/thumbnails/dummy.png'
-						dummy_path_rel = dir+'/thumbnails/dummy.png'
-						if not os.path.exists(dummy_path):
-							dummy = Image.new("RGB", (16,16), (255, 255, 255))
-							dummy.save(dummy_path,"PNG")
-						entry += "<img src=\"{}\" width=\"125\" height=\"170\" class=\"border border\"/>\n".format(dummy_path_rel)
+						print( f'Path {thumbnail_rel} does not exist.' )
 				entry += "</a>\n"
 				entry += '</div>\n'
 				#
 				entry += '<div class="col p-2 pl-3">\n'
 				#
 				if 'title' in paper:
-					entry += "<div id=\"{0}-title\"><h5>{1}</h5></div>\n".format(dir,paper['title'])
+					entry += f'<div id="{dir}-title"><h5>{paper["title"]}</h5></div>\n'
 				if 'journal' in paper:
-					entry += "<div>{} ({})</div>\n".format(paper['journal'],year)
+					entry += f'<div>{paper["journal"]} ({year})</div>\n'
 				if 'author' in paper:
-					entry += "<div>{}</div>\n".format(paper['author'])
+					entry += f'<div>{paper["author"]}</div>\n'
 				#
 				entry += '<div class="pt-3">\n'
 				for file in os.listdir(mkpath(dir)):
 					if file.startswith('.'):
 						continue
 					if not file in ['thumbnails',pdf,'images','converted','analysis'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
-						entry += '<a href="{}" target=\"_blank\" style="padding-right: 0.75rem; white-space: pre;">{}</a>\n'.format(dir+'/'+file,file)
+						entry += f'<a href="{dir+"/"+file}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">{file}</a>\n'
 					if os.path.splitext(file)[1] in video_types:
 						video_id += 1
-						if os.path.exists(mkpath(dir)+'/converted/{}.mp4'.format(file)):
+						if os.path.exists(mkpath(dir)+f'/converted/{file}.mp4'):
 							video_path = dir+'/converted/'+file+'.mp4'
 						else:
 							video_path = dir+'/'+file
@@ -406,11 +412,11 @@ if __name__ == '__main__':
 							'thumbnail' : 'test.jpg',
 						})
 				#
-				entry += '<a href=\"{0}\" target=\"_blank\" style="padding-right: 0.75rem; white-space: pre;">[Files]</a>\n'.format(dir)
+				entry += f'<a href="{dir}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Files]</a>\n'
 				#
 				image_path = mkpath(dir)+'/images/index.html'
 				if os.path.exists(image_path):
-					entry += '<a href=\"{0}\" target=\"_blank\" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'.format(dir+'/images/index.html')
+					entry += f'<a href="{dir+"/images/index.html"}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'
 				#
 				entry += '</div>\n'
 				entry += '</div>\n'
@@ -455,7 +461,7 @@ if __name__ == '__main__':
 						','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
 					)
 				#
-				entry += '<!-------------- ending {} -------------->\n'.format(dir)
+				entry += f'<!-------------- ending {dir} -------------->\n'
 				insert_html += entry
 
 	if enable_search:
@@ -497,4 +503,4 @@ if __name__ == '__main__':
 	#
 	# Copy resources
 	if not os.path.exists(root_dir+'/'+resource_dir):
-		os.system('cp -r {} {}'.format(resource_dir,root_dir))
+		run_command('cp -r {} {}'.format(resource_dir,root_dir))
