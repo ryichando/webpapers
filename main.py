@@ -73,31 +73,29 @@ def process_directory( root, dir ):
 	print(f'Processing {dir}...')
 	#
 	# Information list
-	bib = ''
-	doi = ''
+	bib = None
+	doi = None
 	year = 0
-	title = 'Unknown'
+	title = None
 	pdf = 'main.pdf'
-	authors = 'Unknown'
-	journal = 'Unknown'
+	authors = None
+	journal = None
+	thumbnails = []
+	files = []
+	videos = []
 	#
-	for file in os.listdir(mkpath(root,dir)):
-		for key in video_types:
-			if key.upper() in file:
-				file = file.replace(key.upper(),key)
-		file = unidecode.unidecode(file)
-	#
+	# Get main PDF and its info
 	if not os.path.exists(mkpath(root,dir,pdf)):
 		for file in os.listdir(mkpath(root,dir)):
 			if file.endswith('.pdf'):
 				pdf = file
 				break
-	#
 	info = pikepdf.open(mkpath(root,dir,pdf))
 	#
-	# If the video isn't encoded h264 or the file isn't mp4, convert it
-	if convert_video:
-		for file in os.listdir(mkpath(root,dir)):
+	for file in os.listdir(mkpath(root,dir)):
+		#
+		# If the video isn't encoded h264 or the file isn't mp4, convert it
+		if convert_video:
 			convert_flag = False
 			for key in video_types:
 				if file.endswith(key):
@@ -122,9 +120,8 @@ def process_directory( root, dir ):
 				dest_file = f'{root}/{dir}/converted/{file}.mp4'
 				if not os.path.exists(dest_file):
 					run_command(f'ffmpeg -i {root}/{dir}/{file} -pix_fmt yuv420p -b:v 12000k -vcodec libx264 -acodec aac {dest_file}')
-	#
-	# Import BibTex
-	for file in os.listdir(mkpath(root,dir)):
+		#
+		# Import BibTex
 		if file.endswith('.bib'):
 			bib = file
 			bib_data = parse_file(mkpath(root,dir,bib))
@@ -173,6 +170,18 @@ def process_directory( root, dir ):
 				journal = fix_jornal(fields['journal'])
 			elif 'booktitle' in fields:
 				journal = fix_jornal(fields['booktitle'])
+		#
+		# List files and videos
+		if not file.startswith('.'):
+			if not file in ['thumbnails',pdf,'images','converted','analysis'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
+				files.append(file)
+			if os.path.splitext(file)[1] in video_types:
+				if os.path.exists(mkpath(root,dir)+f'/converted/{file}.mp4'):
+					video_path = 'converted/'+file+'.mp4'
+				else:
+					video_path = file
+				#
+				videos.append(video_path)
 	#
 	# Process a PDF
 	if os.path.exists(mkpath(root,dir,pdf)):
@@ -183,7 +192,8 @@ def process_directory( root, dir ):
 			os.mkdir(mkpath(root,dir,'thumbnails'))
 			run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(root,dir)),thumbnail_page_count,quote(pdf)))
 			for i in range(thumbnail_page_count):
-				good_path = mkpath(root,dir,f'thumbnails/thumbnail-{i+1}.jpg')
+				thumbnail_name = f'/thumbnails/thumbnail-{i+1}.jpg'
+				good_path = mkpath(root,dir,thumbnail_name)
 				processed = False
 				for j in range(4):
 					zeros = ''
@@ -199,6 +209,10 @@ def process_directory( root, dir ):
 				if not processed:
 					dummy = Image.new("RGB",(16,16),(255, 255, 255))
 					dummy.save(good_path,"PNG")
+		for i in range(thumbnail_page_count):
+			thumbnail_name = f'/thumbnails/thumbnail-{i+1}.jpg'
+			good_path = mkpath(root,dir,thumbnail_name)
+			thumbnails.append(thumbnail_name)
 		#
 		# Extract images from PDF
 		if not os.path.exists(mkpath(root,dir,'images')) and len(info.pages) <= image_page_limit:
@@ -239,6 +253,10 @@ def process_directory( root, dir ):
 				with open(mkpath(root,dir)+'/images/index.html','w') as file:
 					file.write(data.format_map(context))
 	#
+	image_path = 'images/index.html'
+	if not os.path.exists(mkpath(root,dir,image_path)):
+		image_path = None
+	#
 	return {
 		'year' : year,
 		'pdf' : pdf,
@@ -246,8 +264,12 @@ def process_directory( root, dir ):
 		'bib' : bib,
 		'doi' : doi,
 		'title' : title,
-		'author' : authors,
+		'authors' : authors,
 		'journal' : journal,
+		'thumbnails' : thumbnails,
+		'files' : files,
+		'videos' : videos,
+		'image_page' : image_path
 	}
 #
 if __name__ == '__main__':
@@ -337,37 +359,37 @@ if __name__ == '__main__':
 	"""
 	#
 	# Probe all the directories
-	database = {}
+	database = []
+	database_yearly = {}
+	paper_id = 0
 	for dir in os.listdir(root):
 		if os.path.isdir(mkpath(root,dir)) and not dir in ['__pycache__',resource_dir]:
-			#
+			paper_id += 1
 			e = process_directory(root,dir)
+			e['id'] = paper_id
 			year = e['year']
 			if year in database:
-				database[year].append(e)
+				database_yearly[year].append(e)
 			else:
-				database[year] = [e]
+				database_yearly[year] = [e]
+			database.append(e)
 	#
-	if not len(database.keys()):
+	# If no valid directory is found exit the program
+	if not len(database):
 		sys.exit(0)
 	#
+	# Generate HTML
 	insert_html = ''
-	insert_js = 'data = {};\n'
-	min_year = min(database.keys())
-	max_year = max(database.keys())
+	min_year = min(database_yearly.keys())
+	max_year = max(database_yearly.keys())
 	video_id = 0
-	word_index = 0
-	word_dictionary = load_dictionary('resources/words')
-	registered_stem = {}
-	registered_words = {}
-	stemmer = nltk.PorterStemmer()
 	#
 	for year in reversed(range(min_year,max_year+1)):
-		if year in database:
+		if year in database_yearly.keys():
 			#
 			insert_html += f'\n<div class="row pl-4" style="background-color: LightGray;" id="{year}">{year}</div>\n'
 			#
-			for paper in database[year]:
+			for paper in database_yearly[year]:
 				#
 				pdf = paper['pdf']
 				dir = paper['dir']
@@ -377,105 +399,40 @@ if __name__ == '__main__':
 				entry += '<div class="w-20 p-2">\n'
 				#
 				entry += f'<a href="{dir+"/"+pdf}" target="_blank">\n'
-				for i in range(thumbnail_page_count):
-					thumbnail = mkpath(root,dir)+f'/thumbnails/thumbnail-{i+1}.jpg'
-					thumbnail_rel = dir+f'/thumbnails/thumbnail-{i+1}.jpg'
-					if os.path.exists(thumbnail):
-						entry += f'<img src="{thumbnail_rel}" width="125" height="170" class="border border"/>\n'
-					else:
-						print( f'Path {thumbnail_rel} does not exist.' )
+				for thumbnail in paper['thumbnails']:
+					entry += f'<img src="{dir+"/"+thumbnail}" width="125" height="170" class="border border"/>\n'
 				entry += "</a>\n"
 				entry += '</div>\n'
-				#
 				entry += '<div class="col p-2 pl-3">\n'
 				#
-				if 'title' in paper:
+				if paper['title']:
 					entry += f'<div id="{dir}-title"><h5>{paper["title"]}</h5></div>\n'
-				if 'journal' in paper:
+				if paper['journal']:
 					entry += f'<div>{paper["journal"]} ({year})</div>\n'
-				if 'author' in paper:
-					entry += f'<div>{paper["author"]}</div>\n'
+				if paper['authors']:
+					entry += f'<div>{paper["authors"]}</div>\n'
 				#
 				entry += '<div class="pt-3">\n'
-				for file in os.listdir(mkpath(root,dir)):
-					if file.startswith('.'):
-						continue
-					if not file in ['thumbnails',pdf,'images','converted','analysis'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
-						entry += f'<a href="{dir+"/"+file}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">{file}</a>\n'
-					if os.path.splitext(file)[1] in video_types:
-						video_id += 1
-						if os.path.exists(mkpath(root,dir)+f'/converted/{file}.mp4'):
-							video_path = dir+'/converted/'+file+'.mp4'
-						else:
-							video_path = dir+'/'+file
-						#
-						entry += video_template.format_map({
-							'text' : file,
-							'id' : str(video_id),
-							'path' : video_path,
-							'thumbnail' : 'test.jpg',
-						})
+				for file in paper['files']:
+					entry += f'<a href="{dir+"/"+file}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">{file}</a>\n'
+				for video in paper['videos']:
+					video_id += 1
+					entry += video_template.format_map({
+						'text' : os.path.basename(video),
+						'id' : str(video_id),
+						'path' : dir+'/'+video,
+						'thumbnail' : 'test.jpg',
+					})
 				#
 				entry += f'<a href="{dir}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Files]</a>\n'
-				#
-				image_path = mkpath(root,dir)+'/images/index.html'
-				if os.path.exists(image_path):
-					entry += f'<a href="{dir+"/images/index.html"}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'
+				if paper['image_page']:
+					entry += f'<a href="{dir+"/"+paper["image_page"]}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'
 				#
 				entry += '</div>\n'
 				entry += '</div>\n'
 				entry += '</div>\n'
-				#
-				lines = pdfdump.dump(mkpath(root,dir,pdf))
-				indices = []
-				#
-				# Build table data
-				if enable_search:
-					print( 'Analyzing {}...'.format(dir))
-					for line in lines:
-						line_indices = []
-						head_pos = 0
-						for _word in line.split(' '):
-							for word in remove_special_chars(_word).split('-'):
-								normalized_word = None
-								if word.lower() in word_dictionary:
-									normalized_word = stemmer.stem(word.lower())
-									key = word.lower()
-								elif word.isupper() and word.isalpha():
-									normalized_word = stemmer.stem(word)
-									key = word.lower()
-								stem_idx = 0
-								if normalized_word:
-									if normalized_word in registered_stem.keys():
-										stem_idx = registered_stem[normalized_word]
-									else:
-										word_index += 1
-										stem_idx = word_index
-										registered_stem[normalized_word] = word_index
-									if not key in registered_words.keys():
-										registered_words[key] = stem_idx
-								line_indices.append((stem_idx,head_pos))
-							head_pos += 1
-						indices.append(line_indices)
-					#
-					insert_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
-						dir,
-						year,
-						','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
-						','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
-					)
-				#
 				entry += f'<!-------------- ending {dir} -------------->\n'
 				insert_html += entry
-
-	if enable_search:
-		#
-		# Write word table
-		insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
-	#
-	# Generate Javascript file
-	with open(root+'/data.js','w') as file:
-		file.write(insert_js)
 	#
 	# Generate HTML
 	context = {
@@ -491,6 +448,64 @@ if __name__ == '__main__':
 		with open(root+'/index.html','w') as file:
 			file.write(data.format_map(context))
 	#
+	# Build search index
+	insert_js = 'data = {};\n'
+	if enable_search:
+		#
+		word_index = 0
+		word_dictionary = load_dictionary('resources/words')
+		registered_stem = {}
+		registered_words = {}
+		stemmer = nltk.PorterStemmer()
+		#
+		for paper in database:
+			#
+			pdf = paper['pdf']
+			dir = paper['dir']
+			print( 'Analyzing {}...'.format(dir))
+			lines = pdfdump.dump(mkpath(root,dir,pdf))
+			indices = []
+			#
+			for line in lines:
+				line_indices = []
+				head_pos = 0
+				for _word in line.split(' '):
+					for word in remove_special_chars(_word).split('-'):
+						normalized_word = None
+						if word.lower() in word_dictionary:
+							normalized_word = stemmer.stem(word.lower())
+							key = word.lower()
+						elif word.isupper() and word.isalpha():
+							normalized_word = stemmer.stem(word)
+							key = word.lower()
+						stem_idx = 0
+						if normalized_word:
+							if normalized_word in registered_stem.keys():
+								stem_idx = registered_stem[normalized_word]
+							else:
+								word_index += 1
+								stem_idx = word_index
+								registered_stem[normalized_word] = word_index
+							if not key in registered_words.keys():
+								registered_words[key] = stem_idx
+						line_indices.append((stem_idx,head_pos))
+					head_pos += 1
+				indices.append(line_indices)
+			#
+			insert_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
+				dir,
+				year,
+				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
+				','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
+			)
+		#
+		# Write word table
+		insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+	#
+	# Generate Javascript file
+	with open(root+'/data.js','w') as file:
+		file.write(insert_js)
+	#
 	# Generate BibTeX
 	entries = {}
 	for year in reversed(range(min_year,max_year+1)):
@@ -501,7 +516,6 @@ if __name__ == '__main__':
 				if bib:
 					bib_data = parse_file(mkpath(root,dir,bib))
 					entries[dir] = bib_data.entries[list(bib_data.entries)[0]]
-	#
 	with open(root+'/bibtex.bib','w') as file:
 			BibliographyData(entries).to_file(file)
 	#
