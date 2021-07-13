@@ -2,7 +2,7 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, configparser, subprocess, unidecode, argparse, shutil, pikepdf, pdfdump, base64, nltk
+import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk
 from PIL import Image
 from pybtex.database import parse_file, BibliographyData
 from shlex import quote
@@ -359,7 +359,7 @@ if __name__ == '__main__':
 	"""
 	#
 	# Probe all the directories
-	database = []
+	database = {}
 	database_yearly = {}
 	paper_id = 0
 	for dir in os.listdir(root):
@@ -368,11 +368,14 @@ if __name__ == '__main__':
 			e = process_directory(root,dir)
 			e['id'] = paper_id
 			year = e['year']
-			if year in database:
+			if year in database_yearly.keys():
 				database_yearly[year].append(e)
 			else:
 				database_yearly[year] = [e]
-			database.append(e)
+			e = e.copy()
+			dir = e['dir']
+			del e['dir']
+			database[dir] = e
 	#
 	# If no valid directory is found exit the program
 	if not len(database):
@@ -448,8 +451,13 @@ if __name__ == '__main__':
 		with open(root+'/index.html','w') as file:
 			file.write(data.format_map(context))
 	#
-	# Build search index
-	insert_js = 'data = {};\n'
+	# Build paper references
+	insert_js = '''
+papers = {};
+data = {{}};
+'''.format(json.dumps(database))
+	#
+	# Add search index
 	if enable_search:
 		#
 		word_index = 0
@@ -458,10 +466,9 @@ if __name__ == '__main__':
 		registered_words = {}
 		stemmer = nltk.PorterStemmer()
 		#
-		for paper in database:
+		for dir,paper in database.items():
 			#
 			pdf = paper['pdf']
-			dir = paper['dir']
 			print( 'Analyzing {}...'.format(dir))
 			lines = pdfdump.dump(mkpath(root,dir,pdf))
 			indices = []
@@ -508,14 +515,11 @@ if __name__ == '__main__':
 	#
 	# Generate BibTeX
 	entries = {}
-	for year in reversed(range(min_year,max_year+1)):
-		if year in database:
-			for paper in database[year]:
-				dir = paper['dir']
-				bib = paper['bib']
-				if bib:
-					bib_data = parse_file(mkpath(root,dir,bib))
-					entries[dir] = bib_data.entries[list(bib_data.entries)[0]]
+	for dir,paper in database.items():
+		bib = paper['bib']
+		if bib:
+			bib_data = parse_file(mkpath(root,dir,bib))
+			entries[dir] = bib_data.entries[list(bib_data.entries)[0]]
 	with open(root+'/bibtex.bib','w') as file:
 			BibliographyData(entries).to_file(file)
 	#
