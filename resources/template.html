@@ -13,7 +13,6 @@
 
 		<!-- Modules -->
 		<script src="{resource_dir}/jquery-3.2.1.slim.min.js"></script>
-		<link href="{resource_dir}/video-js.css" rel="stylesheet" />
 
 		<!-- Data -->
 		<script src="data.js"></script>
@@ -208,12 +207,122 @@
 			}});
 		</script>
 
-{insert_html}
+<script>
+	//
+	max_year = Math.max.apply(null,Object.keys(papers_yearly));
+	min_year = Math.min.apply(null,Object.keys(papers_yearly));
+	//
+	for( let year=max_year; year>=min_year; --year ) {{
+		if( year in papers_yearly ) {{
+			//
+			// Insert year header
+			dirs = papers_yearly[year];
+			let year_header = document.createElement('div');
+			year_header.className = "row pl-4"
+			year_header.style = "background-color: LightGray;";
+			year_header.id = year.toString();
+			year_header.innerHTML = year.toString();
+			document.body.appendChild(year_header);
+			//
+			// For each paper
+			for (const dir of dirs) {{
+				//
+				// Create paper row
+				let paper = papers[dir];
+				let paper_element = document.createElement('div'); {{
+					//
+					paper_element.className = "row";
+					paper_element.id = dir;
+					//
+					// Create thumbnails
+					let thumbnail_header_element = document.createElement('div'); {{
+						thumbnail_header_element.className = "w-20 p-2";
+						let pdf_link = document.createElement('a');
+						pdf_link.href = dir+'/'+paper['pdf'];
+						pdf_link.target = '_blank';
+						for (const thumbnail of paper['thumbnails']) {{
+							let thumbnail_img_element = document.createElement('img');
+							thumbnail_img_element.src = dir+'/'+thumbnail;
+							thumbnail_img_element.width = 125;
+							thumbnail_img_element.height = 170;
+							thumbnail_img_element.className = "border mr-1";
+							pdf_link.appendChild(thumbnail_img_element);
+						}}
+						thumbnail_header_element.appendChild(pdf_link);
+					}} paper_element.appendChild(thumbnail_header_element);
+					//
+					// Create body
+					let body_element = document.createElement('div'); {{
+						body_element.className = "col p-2 pl-3";
+						//
+						// Create title
+						let title_element = document.createElement('div');
+						title_element.innerHTML = `<h5>${{paper['title']}}</h5>`;
+						body_element.appendChild(title_element);
+						//
+						// Create journal
+						let journal_element = document.createElement('div');
+						journal_element.innerHTML = `${{paper['journal']}}`;
+						body_element.appendChild(journal_element);
+						//
+						// Create authors
+						let authors_element = document.createElement('div');
+						authors_element.innerHTML = `${{paper['authors']}}`;
+						body_element.appendChild(authors_element);
+						//
+						// Create materials
+						let materials_element = document.createElement('div'); {{
+							materials_element.className = 'pt-3';
+							//
+							// video
+							for (const video of paper['videos']) {{
+								let video_element = document.createElement('a');
+								video_element.href = dir+'/'+video;
+								video_element.target = "_blank";
+								video_element.style = "padding-right: 0.75rem; white-space: pre;";
+								video_element.innerHTML = video.split('/').pop();
+								materials_element.appendChild(video_element);
+							}}
+							//
+							// file
+							for (const file of paper['files']) {{
+								let file_element = document.createElement('a');
+								file_element.href = dir+'/'+file;
+								file_element.target = "_blank";
+								file_element.style = "padding-right: 0.75rem; white-space: pre;";
+								file_element.innerHTML = file;
+								materials_element.appendChild(file_element);
+							}}
+							//
+							// [Files]
+							let files_element = document.createElement('a');
+							files_element.href = dir;
+							files_element.target = "_blank";
+							files_element.style = "padding-right: 0.75rem; white-space: pre;";
+							files_element.innerHTML = "[Files]";
+							materials_element.appendChild(files_element);
+							//
+							// [Images]
+							if( 'image_page' in paper ) {{
+								let images_element = document.createElement('a');
+								images_element.href = dir+'/'+paper['image_page'];
+								images_element.target = "_blank";
+								images_element.style = "padding-right: 0.75rem; white-space: pre;";
+								images_element.innerHTML = "[Images]";
+								materials_element.appendChild(images_element);
+							}}
+						}} body_element.appendChild(materials_element);
+						//
+					}} paper_element.appendChild(body_element);
+				}} document.body.appendChild(paper_element);
+			}}
+		}}
+	}}
+</script>
 
 		<!-- Optional JavaScript -->
 		<!-- Popper.js, then Bootstrap JS -->
 		<script src="{resource_dir}/popper.min.js"></script>
 		<script src="{resource_dir}/bootstrap.min.js"></script>
-		<script src="{resource_dir}/video.js"></script>
 	</body>
 </html>

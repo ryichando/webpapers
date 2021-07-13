@@ -260,7 +260,7 @@ def process_directory( root, dir ):
 		image_path = None
 	#
 	return {
-		'year' : year,
+		'year' : int(year),
 		'pdf' : pdf,
 		'bib' : bib,
 		'doi' : doi,
@@ -315,49 +315,6 @@ if __name__ == '__main__':
 	#
 	# List all the file types supported
 	video_types = [ '.mp4', '.avi', '.mov', '.flv', '.mpg', '.mpeg', '.m4v' ]
-	video_template = """
-	<a href="#" style="padding-right: 0.75rem; white-space: pre;" data-toggle="modal" data-target="#modal3c-{id}">{text}</a>
-	<div class="modal fade" id="modal3c-{id}" tabindex="-1" role="dialog">
-	<div class="modal-dialog modal-lg" role="document">
-	<div class="modal-content">
-	<div class="modal-header">
-	<h5 class="modal-title">{text}</h5>
-	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-	<span aria-hidden="true">&times;</span>
-	</button>
-	</div>
-	<div class="modal-body" id="modal3c-body-{id}">
-	<script>
-		$("#modal3c-{id}").on("show.bs.modal",function () {{
-			let container = document.getElementById("modal3c-body-{id}");
-			let obj = document.getElementById("my-video-{id}");
-			if(typeof(obj) == 'undefined' || obj == null) {{
-				let video = document.createElement('video');
-				video.setAttribute('id', 'my-video-{id}');
-				video.setAttribute('class', 'video-js vjs-default-skin');
-				video.setAttribute('width', '770');
-				video.setAttribute('data-height', '500');
-				video.setAttribute('controls', ' ');
-				video.setAttribute('preload', 'auto');
-				video.setAttribute('data-setup', '{{}}');
-				let source = document.createElement('source');
-				source.setAttribute('type', 'video/mp4');
-				source.setAttribute('src', '{path}');
-				video.appendChild(source);
-				container.appendChild(video);
-				let player = videojs(video);
-			}}
-		}});
-		$("#modal3c-{id}").on("hidden.bs.modal",function () {{
-			let container = videojs("my-video-{id}");
-			container.pause();
-		}});
-	</script>
-	</div>
-	</div>
-	</div>
-	</div>
-	"""
 	#
 	# Probe all the directories
 	database = {}
@@ -377,64 +334,9 @@ if __name__ == '__main__':
 		sys.exit(0)
 	#
 	# Generate HTML
-	insert_html = ''
-	min_year = min(database_yearly.keys())
-	max_year = max(database_yearly.keys())
-	video_id = 0
-	#
-	for year in reversed(range(min_year,max_year+1)):
-		if year in database_yearly.keys():
-			#
-			insert_html += f'\n<div class="row pl-4" style="background-color: LightGray;" id="{year}">{year}</div>\n'
-			for dir in database_yearly[year]:
-				#
-				paper = database[dir]
-				pdf = paper['pdf']
-				entry = f'\n<!-------------- starting {dir} -------------->\n'
-				entry += f'<div class="row" id="{dir}">\n'
-				entry += '<div class="w-20 p-2">\n'
-				#
-				entry += f'<a href="{dir+"/"+pdf}" target="_blank">\n'
-				for thumbnail in paper['thumbnails']:
-					entry += f'<img src="{dir+"/"+thumbnail}" width="125" height="170" class="border border"/>\n'
-				entry += "</a>\n"
-				entry += '</div>\n'
-				entry += '<div class="col p-2 pl-3">\n'
-				#
-				if paper['title']:
-					entry += f'<div id="{dir}-title"><h5>{paper["title"]}</h5></div>\n'
-				if paper['journal']:
-					entry += f'<div>{paper["journal"]} ({year})</div>\n'
-				if paper['authors']:
-					entry += f'<div>{paper["authors"]}</div>\n'
-				#
-				entry += '<div class="pt-3">\n'
-				for file in paper['files']:
-					entry += f'<a href="{dir+"/"+file}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">{file}</a>\n'
-				for video in paper['videos']:
-					video_id += 1
-					entry += video_template.format_map({
-						'text' : os.path.basename(video),
-						'id' : str(video_id),
-						'path' : dir+'/'+video,
-						'thumbnail' : 'test.jpg',
-					})
-				#
-				entry += f'<a href="{dir}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Files]</a>\n'
-				if paper['image_page']:
-					entry += f'<a href="{dir+"/"+paper["image_page"]}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'
-				#
-				entry += '</div>\n'
-				entry += '</div>\n'
-				entry += '</div>\n'
-				entry += f'<!-------------- ending {dir} -------------->\n'
-				insert_html += entry
-	#
-	# Generate HTML
 	context = {
 		'search_hide' : '' if enable_search else 'hidden',
 		'page_title' : page_title,
-		'insert_html': insert_html,
 		'resource_dir' : resource_dir,
 		'button_hide' : 'hidden' if realtime_search else '',
 		'realtime_search' : 'true' if realtime_search else 'false',
@@ -449,7 +351,7 @@ if __name__ == '__main__':
 papers = {0};
 papers_yearly = {1};
 data = {{}};
-'''.format(json.dumps(database),json.dumps(database_yearly,sort_keys=True))
+'''.format(json.dumps(database),json.dumps(database_yearly))
 	#
 	# Add search index
 	if enable_search:
