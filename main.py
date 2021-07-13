@@ -45,8 +45,8 @@ def remove_special_chars( text ):
 		'&' : '',
 	})
 #
-def mkpath(dir,file=''):
-	return root_dir+'/'+dir+'/'+file
+def mkpath(root,dir,file=''):
+	return root+'/'+dir+'/'+file
 #
 def load_dictionary( dirpath ):
 	with open(dirpath+'/words.txt') as f:
@@ -68,18 +68,200 @@ def clean( lines, dictionary ):
 	#
 	return results
 #
+def process_directory( root, dir ):
+	#
+	print(f'Processing {dir}...')
+	#
+	# Information list
+	bib = ''
+	doi = ''
+	year = 0
+	title = 'Unknown'
+	pdf = 'main.pdf'
+	authors = 'Unknown'
+	journal = 'Unknown'
+	#
+	for file in os.listdir(mkpath(root,dir)):
+		for key in video_types:
+			if key.upper() in file:
+				file = file.replace(key.upper(),key)
+		file = unidecode.unidecode(file)
+	#
+	if not os.path.exists(mkpath(root,dir,pdf)):
+		for file in os.listdir(mkpath(root,dir)):
+			if file.endswith('.pdf'):
+				pdf = file
+				break
+	#
+	info = pikepdf.open(mkpath(root,dir,pdf))
+	#
+	# If the video isn't encoded h264 or the file isn't mp4, convert it
+	if convert_video:
+		for file in os.listdir(mkpath(root,dir)):
+			convert_flag = False
+			for key in video_types:
+				if file.endswith(key):
+					cmd = f'ffprobe -v quiet -show_streams -i {mkpath(root,dir,quote(file))}'
+					result = subprocess.check_output(cmd.split())
+					if '[STREAM]' in str(result) and not 'codec_name=unknown' in str(result):
+						if key == '.mp4':
+							if 'h264' in str(result):
+								print( f'{root}/{dir}/{file} has codec h264' )
+							else:
+								print( f'{root}/{dir}/{file} does not have codec h264' )
+								convert_flag = True
+						else:
+							print( f'{root}/{dir}/{file} is not mp4' )
+							convert_flag = True
+					else:
+						print( f'{root}/{dir}/{file} does not have any video stream' )
+					break
+			if convert_flag:
+				if not os.path.exists(mkpath(root,dir,'converted')):
+					os.mkdir(mkpath(root,dir,'converted'))
+				dest_file = f'{root}/{dir}/converted/{file}.mp4'
+				if not os.path.exists(dest_file):
+					run_command(f'ffmpeg -i {root}/{dir}/{file} -pix_fmt yuv420p -b:v 12000k -vcodec libx264 -acodec aac {dest_file}')
+	#
+	# Import BibTex
+	for file in os.listdir(mkpath(root,dir)):
+		if file.endswith('.bib'):
+			bib = file
+			bib_data = parse_file(mkpath(root,dir,bib))
+			bib_entry = bib_data.entries[list(bib_data.entries)[0]]
+			fields = bib_entry.fields
+			if 'doi' in fields:
+				doi = fields['doi']
+			else:
+				print( 'WARNING: doi not found ')
+			if 'year' in fields:
+				year = int(fields['year'])
+			else:
+				print( 'WARNING: year not found ')
+			if 'title' in fields:
+				title = remove_curly_bracket(fields['title'])
+			else:
+				meta_data = info.open_metadata()
+				if 'dc:title' in meta_data:
+					title = info.open_metadata()['dc:title']
+				else:
+					print( 'WARNING: title not found ')
+			#
+			persons = bib_entry.persons
+			#
+			if 'author' in persons:
+				authors_str = ''
+				for i,person in enumerate(persons['author']):
+					if len(person.first_names):
+						for j,name in enumerate(person.first_names):
+							if j == 0:
+								authors_str += ' '
+							authors_str += name
+					if len(person.middle_names):
+						for name in person.middle_names:
+							authors_str += ' '+remove_special_chars(name)
+					if len(person.last_names):
+						for name in person.last_names:
+							authors_str += ' '+remove_special_chars(name)
+					if i < len(persons['author'])-1:
+						authors_str += ' and ' if i == len(persons['author'])-2 else ', '
+				if not authors_str:
+					print( f'WARNING: {dir} is missing author info.')
+				authors = remove_special_chars(authors_str)
+			#
+			if 'journal' in fields:
+				journal = fix_jornal(fields['journal'])
+			elif 'booktitle' in fields:
+				journal = fix_jornal(fields['booktitle'])
+	#
+	# Process a PDF
+	if os.path.exists(mkpath(root,dir,pdf)):
+		#
+		# Generate PDF thumbnail
+		if not os.path.exists(mkpath(root,dir,'thumbnails')):
+			print( "Generating thumbnails for {}...".format(dir))
+			os.mkdir(mkpath(root,dir,'thumbnails'))
+			run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(root,dir)),thumbnail_page_count,quote(pdf)))
+			for i in range(thumbnail_page_count):
+				good_path = mkpath(root,dir,f'thumbnails/thumbnail-{i+1}.jpg')
+				processed = False
+				for j in range(4):
+					zeros = ''
+					for k in range(j+1):
+						path = mkpath(root,dir,f'thumbnails/thumbnail-{zeros}{i+1}.jpg')
+						zeros += '0'
+						if os.path.exists(path):
+							os.rename(path,good_path)
+							processed = True
+							break
+					if processed:
+						break
+				if not processed:
+					dummy = Image.new("RGB",(16,16),(255, 255, 255))
+					dummy.save(good_path,"PNG")
+		#
+		# Extract images from PDF
+		if not os.path.exists(mkpath(root,dir,'images')) and len(info.pages) <= image_page_limit:
+			print( f"Extracting images for {dir}..." )
+			os.mkdir(mkpath(root,dir,'images'))
+			run_command("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(root,dir)),quote(pdf)))
+			run_command("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(root,dir))))
+			run_command("find {0}/images -type f ! -name '*.jpg' -delete".format(quote(mkpath(root,dir))))
+			#
+			# Remove if the either the file size is too small or the resolution is too low
+			remove_list = []
+			for img in os.listdir(mkpath(root,dir,'images')):
+				img_path = mkpath(root,dir)+'/images/'+img
+				width,height = Image.open(img_path).size;
+				if width < image_dimension_limit or height < image_dimension_limit:
+					remove_list.append(img_path)
+				elif os.path.getsize(img_path) < image_filesize_limit:
+					remove_list.append(img_path)
+			for img_path in remove_list:
+				os.remove(img_path)
+		#
+		# Generate HTML files for the "images" page
+		if os.path.exists(mkpath(root,dir,'images')) and len(os.listdir(mkpath(root,dir,'images'))):
+			insert_html = ''
+			for img in os.listdir(mkpath(root,dir,'images')):
+				insert_html += '<div class="row">\n'
+				insert_html += '<div>\n'
+				insert_html += '<a href=\"{0}"><img src="{0}" style="max-width: 100%;"/></a>\n'.format(img)
+				insert_html += '</div>\n'
+				insert_html += '</div>\n'
+			context = {
+				'title': title,
+				'insert_html' : insert_html,
+				'resource_dir' : resource_dir,
+			}
+			with open('{}/image-template.html'.format(resource_dir),'r') as template:
+				data = template.read()
+				with open(mkpath(root,dir)+'/images/index.html','w') as file:
+					file.write(data.format_map(context))
+	#
+	return {
+		'year' : year,
+		'pdf' : pdf,
+		'dir' : dir,
+		'bib' : bib,
+		'doi' : doi,
+		'title' : title,
+		'author' : authors,
+		'journal' : journal,
+	}
+#
 if __name__ == '__main__':
 	#
 	# Parse arguments
 	parser = argparse.ArgumentParser()
-	parser.add_argument('root_dir', help='Root directory')
+	parser.add_argument('root', help='Root directory')
 	parser.add_argument('--clean', action='store_true')
 	args = parser.parse_args()
-	root_dir = args.root_dir
+	root = args.root
 	#
 	# Load parameters
 	config = configparser.ConfigParser()
-	config.read('{}/config.ini'.format(root_dir))
+	config.read('{}/config.ini'.format(root))
 	page_title = config['DEFAULT']['page_title']
 	thumbnail_page_count = int(config['DEFAULT']['thumbnail_page_count'])
 	image_filesize_limit = int(config['DEFAULT']['image_filesize_limit'])
@@ -93,19 +275,19 @@ if __name__ == '__main__':
 	# If the "clean" flag is specified, clean them all
 	if args.clean:
 		print( 'Cleaning...' )
-		for dir in os.listdir(root_dir):
+		for dir in os.listdir(root):
 			if dir in ['__pycache__',resource_dir]:
-				print( f'Deleting {root_dir}/{dir}...' )
-				shutil.rmtree(root_dir+'/'+dir)
+				print( f'Deleting {root}/{dir}...' )
+				shutil.rmtree(root+'/'+dir)
 			elif dir in ['bibtex.bib','index.html','data.js']:
-				file = root_dir+'/'+dir
+				file = root+'/'+dir
 				print( f'Deleting {file}...')
 				os.remove(file)
-			elif os.path.isdir(root_dir+'/'+dir):
-				for subdir in os.listdir(root_dir+'/'+dir):
+			elif os.path.isdir(root+'/'+dir):
+				for subdir in os.listdir(root+'/'+dir):
 					if subdir in ['thumbnails','images','converted','analysis']:
-						print(f'Deleting {root_dir}/{dir}/{subdir}...')
-						shutil.rmtree(root_dir+'/'+dir+'/'+subdir)
+						print(f'Deleting {root}/{dir}/{subdir}...')
+						shutil.rmtree(root+'/'+dir+'/'+subdir)
 		sys.exit(0)
 	#
 	# List all the file types supported
@@ -156,189 +338,11 @@ if __name__ == '__main__':
 	#
 	# Probe all the directories
 	database = {}
-	for dir in os.listdir(root_dir):
-		if os.path.isdir(mkpath(dir)) and not dir in ['__pycache__',resource_dir]:
+	for dir in os.listdir(root):
+		if os.path.isdir(mkpath(root,dir)) and not dir in ['__pycache__',resource_dir]:
 			#
-			print("Processing {}...".format(dir))
-			#
-			# Information list
-			bib = ''
-			doi = ''
-			year = 0
-			title = 'Unknown'
-			pdf = 'main.pdf'
-			authors = 'Unknown'
-			journal = 'Unknown'
-			#
-			for file in os.listdir(mkpath(dir)):
-				for key in video_types:
-					if key.upper() in file:
-						file = file.replace(key.upper(),key)
-				file = unidecode.unidecode(file)
-			#
-			if not os.path.exists(mkpath(dir,pdf)):
-				for file in os.listdir(mkpath(dir)):
-					if file.endswith('.pdf'):
-						pdf = file
-						break
-			#
-			info = pikepdf.open(mkpath(dir,pdf))
-			#
-			# If the video isn't encoded h264 or the file isn't mp4, convert it
-			if convert_video:
-				for file in os.listdir(mkpath(dir)):
-					convert_flag = False
-					for key in video_types:
-						if file.endswith(key):
-							cmd = f'ffprobe -v quiet -show_streams -i {mkpath(dir,quote(file))}'
-							result = subprocess.check_output(cmd.split())
-							if '[STREAM]' in str(result) and not 'codec_name=unknown' in str(result):
-								if key == '.mp4':
-									if 'h264' in str(result):
-										print( f'{root_dir}/{dir}/{file} has codec h264' )
-									else:
-										print( f'{root_dir}/{dir}/{file} does not have codec h264' )
-										convert_flag = True
-								else:
-									print( f'{root_dir}/{dir}/{file} is not mp4' )
-									convert_flag = True
-							else:
-								print( f'{root_dir}/{dir}/{file} does not have any video stream' )
-							break
-					if convert_flag:
-						if not os.path.exists(mkpath(dir,'converted')):
-							os.mkdir(mkpath(dir,'converted'))
-						dest_file = f'{root_dir}/{dir}/converted/{file}.mp4'
-						if not os.path.exists(dest_file):
-							run_command(f'ffmpeg -i {root_dir}/{dir}/{file} -pix_fmt yuv420p -b:v 12000k -vcodec libx264 -acodec aac {dest_file}')
-			#
-			# Import BibTex
-			for file in os.listdir(mkpath(dir)):
-				if file.endswith('.bib'):
-					bib = file
-					bib_data = parse_file(mkpath(dir,bib))
-					bib_entry = bib_data.entries[list(bib_data.entries)[0]]
-					fields = bib_entry.fields
-					if 'doi' in fields:
-						doi = fields['doi']
-					else:
-						print( 'WARNING: doi not found ')
-					if 'year' in fields:
-						year = int(fields['year'])
-					else:
-						print( 'WARNING: year not found ')
-					if 'title' in fields:
-						title = remove_curly_bracket(fields['title'])
-					else:
-						meta_data = info.open_metadata()
-						if 'dc:title' in meta_data:
-							title = info.open_metadata()['dc:title']
-						else:
-							print( 'WARNING: title not found ')
-					#
-					persons = bib_entry.persons
-					#
-					if 'author' in persons:
-						authors_str = ''
-						for i,person in enumerate(persons['author']):
-							if len(person.first_names):
-								for j,name in enumerate(person.first_names):
-									if j == 0:
-										authors_str += ' '
-									authors_str += name
-							if len(person.middle_names):
-								for name in person.middle_names:
-									authors_str += ' '+remove_special_chars(name)
-							if len(person.last_names):
-								for name in person.last_names:
-									authors_str += ' '+remove_special_chars(name)
-							if i < len(persons['author'])-1:
-								authors_str += ' and ' if i == len(persons['author'])-2 else ', '
-						if not authors_str:
-							print( f'WARNING: {dir} is missing author info.')
-						authors = remove_special_chars(authors_str)
-					#
-					if 'journal' in fields:
-						journal = fix_jornal(fields['journal'])
-					elif 'booktitle' in fields:
-						journal = fix_jornal(fields['booktitle'])
-			#
-			# Process a PDF
-			if os.path.exists(mkpath(dir,pdf)):
-				#
-				# Generate PDF thumbnail
-				if not os.path.exists(mkpath(dir,'thumbnails')):
-					print( "Generating thumbnails for {}...".format(dir))
-					os.mkdir(mkpath(dir,'thumbnails'))
-					run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(dir)),thumbnail_page_count,quote(pdf)))
-					for i in range(thumbnail_page_count):
-						good_path = mkpath(dir,f'thumbnails/thumbnail-{i+1}.jpg')
-						processed = False
-						for j in range(4):
-							zeros = ''
-							for k in range(j+1):
-								path = mkpath(dir,f'thumbnails/thumbnail-{zeros}{i+1}.jpg')
-								zeros += '0'
-								if os.path.exists(path):
-									os.rename(path,good_path)
-									processed = True
-									break
-							if processed:
-								break
-						if not processed:
-							dummy = Image.new("RGB",(16,16),(255, 255, 255))
-							dummy.save(good_path,"PNG")
-				#
-				# Extract images from PDF
-				if not os.path.exists(mkpath(dir,'images')) and len(info.pages) <= image_page_limit:
-					print( f"Extracting images for {dir}..." )
-					os.mkdir(mkpath(dir,'images'))
-					run_command("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(dir)),quote(pdf)))
-					run_command("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(dir))))
-					run_command("find {0}/images -type f ! -name '*.jpg' -delete".format(quote(mkpath(dir))))
-					#
-					# Remove if the either the file size is too small or the resolution is too low
-					remove_list = []
-					for img in os.listdir(mkpath(dir,'images')):
-						img_path = mkpath(dir)+'/images/'+img
-						width,height = Image.open(img_path).size;
-						if width < image_dimension_limit or height < image_dimension_limit:
-							remove_list.append(img_path)
-						elif os.path.getsize(img_path) < image_filesize_limit:
-							remove_list.append(img_path)
-					for img_path in remove_list:
-						os.remove(img_path)
-				#
-				# Generate HTML files for the "images" page
-				if os.path.exists(mkpath(dir,'images')) and len(os.listdir(mkpath(dir,'images'))):
-					insert_html = ''
-					for img in os.listdir(mkpath(dir,'images')):
-						insert_html += '<div class="row">\n'
-						insert_html += '<div>\n'
-						insert_html += '<a href=\"{0}"><img src="{0}" style="max-width: 100%;"/></a>\n'.format(img)
-						insert_html += '</div>\n'
-						insert_html += '</div>\n'
-					context = {
-						'title': title,
-						'insert_html' : insert_html,
-						'resource_dir' : resource_dir,
-					}
-					with open('{}/image-template.html'.format(resource_dir),'r') as template:
-						data = template.read()
-						with open(mkpath(dir)+'/images/index.html','w') as file:
-							file.write(data.format_map(context))
-			#
-			# Register to the database
-			e = {
-				'year' : year,
-				'pdf' : pdf,
-				'dir' : dir,
-				'bib' : bib,
-				'doi' : doi,
-				'title' : title,
-				'author' : authors,
-				'journal' : journal,
-			}
+			e = process_directory(root,dir)
+			year = e['year']
 			if year in database:
 				database[year].append(e)
 			else:
@@ -374,7 +378,7 @@ if __name__ == '__main__':
 				#
 				entry += f'<a href="{dir+"/"+pdf}" target="_blank">\n'
 				for i in range(thumbnail_page_count):
-					thumbnail = mkpath(dir)+f'/thumbnails/thumbnail-{i+1}.jpg'
+					thumbnail = mkpath(root,dir)+f'/thumbnails/thumbnail-{i+1}.jpg'
 					thumbnail_rel = dir+f'/thumbnails/thumbnail-{i+1}.jpg'
 					if os.path.exists(thumbnail):
 						entry += f'<img src="{thumbnail_rel}" width="125" height="170" class="border border"/>\n'
@@ -393,14 +397,14 @@ if __name__ == '__main__':
 					entry += f'<div>{paper["author"]}</div>\n'
 				#
 				entry += '<div class="pt-3">\n'
-				for file in os.listdir(mkpath(dir)):
+				for file in os.listdir(mkpath(root,dir)):
 					if file.startswith('.'):
 						continue
 					if not file in ['thumbnails',pdf,'images','converted','analysis'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
 						entry += f'<a href="{dir+"/"+file}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">{file}</a>\n'
 					if os.path.splitext(file)[1] in video_types:
 						video_id += 1
-						if os.path.exists(mkpath(dir)+f'/converted/{file}.mp4'):
+						if os.path.exists(mkpath(root,dir)+f'/converted/{file}.mp4'):
 							video_path = dir+'/converted/'+file+'.mp4'
 						else:
 							video_path = dir+'/'+file
@@ -414,7 +418,7 @@ if __name__ == '__main__':
 				#
 				entry += f'<a href="{dir}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Files]</a>\n'
 				#
-				image_path = mkpath(dir)+'/images/index.html'
+				image_path = mkpath(root,dir)+'/images/index.html'
 				if os.path.exists(image_path):
 					entry += f'<a href="{dir+"/images/index.html"}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>\n'
 				#
@@ -422,7 +426,7 @@ if __name__ == '__main__':
 				entry += '</div>\n'
 				entry += '</div>\n'
 				#
-				lines = pdfdump.dump(mkpath(dir,pdf))
+				lines = pdfdump.dump(mkpath(root,dir,pdf))
 				indices = []
 				#
 				# Build table data
@@ -470,7 +474,7 @@ if __name__ == '__main__':
 		insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
 	#
 	# Generate Javascript file
-	with open(root_dir+'/data.js','w') as file:
+	with open(root+'/data.js','w') as file:
 		file.write(insert_js)
 	#
 	# Generate HTML
@@ -484,7 +488,7 @@ if __name__ == '__main__':
 	}
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()
-		with open(root_dir+'/index.html','w') as file:
+		with open(root+'/index.html','w') as file:
 			file.write(data.format_map(context))
 	#
 	# Generate BibTeX
@@ -495,12 +499,12 @@ if __name__ == '__main__':
 				dir = paper['dir']
 				bib = paper['bib']
 				if bib:
-					bib_data = parse_file(mkpath(dir,bib))
+					bib_data = parse_file(mkpath(root,dir,bib))
 					entries[dir] = bib_data.entries[list(bib_data.entries)[0]]
 	#
-	with open(root_dir+'/bibtex.bib','w') as file:
+	with open(root+'/bibtex.bib','w') as file:
 			BibliographyData(entries).to_file(file)
 	#
 	# Copy resources
-	if not os.path.exists(root_dir+'/'+resource_dir):
-		run_command('cp -r {} {}'.format(resource_dir,root_dir))
+	if not os.path.exists(root+'/'+resource_dir):
+		run_command('cp -r {} {}'.format(resource_dir,root))
