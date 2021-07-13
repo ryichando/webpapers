@@ -449,7 +449,7 @@ if __name__ == '__main__':
 papers = {0};
 papers_yearly = {1};
 data = {{}};
-'''.format(json.dumps(database),json.dumps(database_yearly))
+'''.format(json.dumps(database),json.dumps(database_yearly,sort_keys=True))
 	#
 	# Add search index
 	if enable_search:
