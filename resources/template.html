@@ -275,13 +275,22 @@
 							materials_element.className = 'pt-3';
 							//
 							// video
+							let count = paper['videos'].length;
+							if( count == 1 ) {{
+								materials_element.innerHTML += "Video: ";
+							}} else if( count > 1 ) {{
+								materials_element.innerHTML += "Videos: ";
+							}}
 							for (const video of paper['videos']) {{
 								let video_element = document.createElement('a');
 								video_element.href = dir+'/'+video;
 								video_element.target = "_blank";
 								video_element.style = "padding-right: 0.75rem; white-space: pre;";
-								video_element.innerHTML = video.split('/').pop();
+								video_element.innerHTML = '{{'+video.split('/').pop().split('.')[0]+'}}';
 								materials_element.appendChild(video_element);
+							}}
+							if( count ) {{
+								materials_element.innerHTML += "<br>";
 							}}
 							//
 							// file
