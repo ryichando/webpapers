@@ -96,6 +96,7 @@ def process_directory( root, dir ):
 		#
 		# If the video isn't encoded h264 or the file isn't mp4, convert it
 		if convert_video:
+			#
 			convert_flag = False
 			for key in video_types:
 				if file.endswith(key):
@@ -114,6 +115,7 @@ def process_directory( root, dir ):
 					else:
 						print( f'{root}/{dir}/{file} does not have any video stream' )
 					break
+			#
 			if convert_flag:
 				if not os.path.exists(mkpath(root,dir,'converted')):
 					os.mkdir(mkpath(root,dir,'converted'))
@@ -123,10 +125,12 @@ def process_directory( root, dir ):
 		#
 		# Import BibTex
 		if file.endswith('.bib'):
+			#
 			bib = file
 			bib_data = parse_file(mkpath(root,dir,bib))
 			bib_entry = bib_data.entries[list(bib_data.entries)[0]]
 			fields = bib_entry.fields
+			#
 			if 'doi' in fields:
 				doi = fields['doi']
 			else:
@@ -143,7 +147,6 @@ def process_directory( root, dir ):
 					title = info.open_metadata()['dc:title']
 				else:
 					print( 'WARNING: title not found ')
-			#
 			persons = bib_entry.persons
 			#
 			if 'author' in persons:
@@ -180,7 +183,6 @@ def process_directory( root, dir ):
 					video_path = 'converted/'+file+'.mp4'
 				else:
 					video_path = file
-				#
 				videos.append(video_path)
 	#
 	# Process a PDF
@@ -210,7 +212,7 @@ def process_directory( root, dir ):
 					dummy = Image.new("RGB",(16,16),(255, 255, 255))
 					dummy.save(good_path,"PNG")
 		for i in range(thumbnail_page_count):
-			thumbnail_name = f'/thumbnails/thumbnail-{i+1}.jpg'
+			thumbnail_name = f'thumbnails/thumbnail-{i+1}.jpg'
 			good_path = mkpath(root,dir,thumbnail_name)
 			thumbnails.append(thumbnail_name)
 		#
@@ -260,7 +262,6 @@ def process_directory( root, dir ):
 	return {
 		'year' : year,
 		'pdf' : pdf,
-		'dir' : dir,
 		'bib' : bib,
 		'doi' : doi,
 		'title' : title,
@@ -361,20 +362,14 @@ if __name__ == '__main__':
 	# Probe all the directories
 	database = {}
 	database_yearly = {}
-	paper_id = 0
 	for dir in os.listdir(root):
 		if os.path.isdir(mkpath(root,dir)) and not dir in ['__pycache__',resource_dir]:
-			paper_id += 1
 			e = process_directory(root,dir)
-			e['id'] = paper_id
 			year = e['year']
 			if year in database_yearly.keys():
-				database_yearly[year].append(e)
+				database_yearly[year].append(dir)
 			else:
-				database_yearly[year] = [e]
-			e = e.copy()
-			dir = e['dir']
-			del e['dir']
+				database_yearly[year] = [dir]
 			database[dir] = e
 	#
 	# If no valid directory is found exit the program
@@ -391,12 +386,10 @@ if __name__ == '__main__':
 		if year in database_yearly.keys():
 			#
 			insert_html += f'\n<div class="row pl-4" style="background-color: LightGray;" id="{year}">{year}</div>\n'
-			#
-			for paper in database_yearly[year]:
+			for dir in database_yearly[year]:
 				#
+				paper = database[dir]
 				pdf = paper['pdf']
-				dir = paper['dir']
-				#
 				entry = f'\n<!-------------- starting {dir} -------------->\n'
 				entry += f'<div class="row" id="{dir}">\n'
 				entry += '<div class="w-20 p-2">\n'
@@ -453,9 +446,10 @@ if __name__ == '__main__':
 	#
 	# Build paper references
 	insert_js = '''
-papers = {};
+papers = {0};
+papers_yearly = {1};
 data = {{}};
-'''.format(json.dumps(database))
+'''.format(json.dumps(database),json.dumps(database_yearly))
 	#
 	# Add search index
 	if enable_search:
