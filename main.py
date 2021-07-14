@@ -296,6 +296,7 @@ if __name__ == '__main__':
 	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
 	server_port = config['DEFAULT']['server_port']
 	server_url = config['DEFAULT']['server_url'].replace('{server_port}',str(server_port))
+	num_max_search_hit = int(config['DEFAULT']['num_max_search_hit'])
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -417,6 +418,7 @@ const papers_yearly = {1};
 	#
 	papers_js += f'const token = "{secrets.token_urlsafe(8)}"\n'
 	papers_js += f'const server_port = {server_port}\n'
+	papers_js += f'const num_max_search_hit = {num_max_search_hit}'
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
 	#

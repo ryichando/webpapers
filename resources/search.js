@@ -88,6 +88,9 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							}
 							num_found += 1;
 							add_snippet(text);
+							if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
+								return num_found;
+							}
 						}
 					}
 				} else if ( search_from == 'title' ) {
@@ -104,8 +107,11 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							add_year(year);
 							year_found = true;
 						}
-						add_paper(dir);
 						num_found += 1;
+						add_paper(dir);
+						if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
+							return num_found;
+						}
 					}
 				}
 			}
