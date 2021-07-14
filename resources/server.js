@@ -16,23 +16,29 @@ import_js('./resources/search.js');
 //
 app.get('/', (req, res) => {
 	res.header('Access-Control-Allow-Origin','*')
-	if( req.query.array ) {
-		let keywords = req.query.array.split(',');
-		console.log(keywords);
-		result = [];
-		let add_year = function ( year ) {
-			result.push(['add_year',year]);
-		};
-		let add_paper = function ( dir ) {
-			result.push(['add_paper',dir]);
-		};
-		let add_snippet = function ( text ) {
-			result.push(['add_snippet',text]);
-		};
-		result.push(['result',search ( keywords, add_year, add_paper, add_snippet )]);
-		res.json(result);
+	if( ! req.query.token ) {
+		res.send('Token not defined');
+	} else if( req.query.token != token ) {
+		res.send('Wrong token');
 	} else {
-		res.send('Array not defined');
+		if( req.query.array ) {
+			let keywords = req.query.array.split(',');
+			console.log(keywords);
+			result = [];
+			let add_year = function ( year ) {
+				result.push(['add_year',year]);
+			};
+			let add_paper = function ( dir ) {
+				result.push(['add_paper',dir]);
+			};
+			let add_snippet = function ( text ) {
+				result.push(['add_snippet',text]);
+			};
+			result.push(['result',search ( keywords, add_year, add_paper, add_snippet )]);
+			res.json(result);
+		} else {
+			res.send('Array not defined');
+		}
 	}
 })
 //

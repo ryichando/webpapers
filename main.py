@@ -2,7 +2,7 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk
+import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk, secrets
 from PIL import Image
 from pybtex.database import parse_file, BibliographyData
 from shlex import quote
@@ -401,17 +401,18 @@ if __name__ == '__main__':
 			)
 		#
 		# Write word table
-		data_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
 	#
 	# Generate Javascript file
 	with open(root+'/data.js','w') as file:
 		file.write(data_js)
 	#
 	papers_js = '''
-papers = {0};
-papers_yearly = {1};
+const papers = {0};
+const papers_yearly = {1};
 '''.format(json.dumps(database),json.dumps(database_yearly))
 	#
+	papers_js += f'const token = "{secrets.token_urlsafe(8)}"\n'
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
 	#
