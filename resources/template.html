@@ -15,7 +15,7 @@
 		<script src="resources/jquery-3.2.1.slim.min.js"></script>
 
 		<!-- Data -->
-		<script src="data.js"></script>
+		<script src="data.js"/></script>
 
 		<!-- Style -->
 		<style>
@@ -50,6 +50,8 @@
 			</div>
 		</div>
 
+		<div id="papers"></div>
+
 <script>
 	// https://stackoverflow.com/questions/4793604/how-to-insert-an-element-after-another-element-in-javascript-without-using-a-lib
 	function insert_after( new_node, reference_node ) {
@@ -69,15 +71,36 @@
 		return escape_chars[match];
 		});
 	}
+	function clear() {
+		document.getElementById('papers').innerHTML = '';
+	}
 	function refresh () {
+		//
+		clear();
 		document.querySelectorAll('.search-result').forEach(e => e.remove());
-		for (const [key,value] of Object.entries(data)) {
-			document.getElementById(value.year.toString()).hidden = false;
-			document.getElementById(key).hidden = false;
+		body = document.getElementById('papers');
+		max_year = Math.max.apply(null,Object.keys(papers_yearly));
+		min_year = Math.min.apply(null,Object.keys(papers_yearly));
+		for( let year=max_year; year>=min_year; --year ) {
+			if( year in papers_yearly ) {
+				//
+				// Insert year header
+				add_year(body,year);
+				//
+				// For each paper
+				dirs = papers_yearly[year];
+				for (const dir of dirs) {
+					add_paper(body,dir);
+				}
+			}
 		}
 	}
-	let send_search = function () {
+	function search () {
+		//
+		clear();
+		body = document.getElementById('papers');
 		$("#status").text('Processing...');
+		//
 		document.querySelectorAll('.search-result').forEach(e => e.remove());
 		document.getElementById("status").hidden = false;
 		let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
@@ -96,6 +119,7 @@
 				document.getElementById(key).hidden = false;
 			}
 			document.getElementById("status").hidden = true;
+			refresh();
 			return;
 		}
 		let indices = [];
@@ -111,72 +135,86 @@
 				}
 			}
 		}
-		for ( let year of Object.keys(papers_yearly) ) {
-			document.getElementById(year.toString()).hidden = true;
-		}
 		//
-		let found_years = [];
 		num_found = 0;
-		for (const [key, value] of Object.entries(data)) {
-			let year = value.year;
-			hide = true;
-			if( search_from == 'contents' ) {
-				for( let i=0; i<value.index.length; ++i ) {
-					let min = value.index[i].length;
-					let max = 0;
-					let window_size = 10;
-					let highlights = [];
-					for( const idx of indices ) {
-						let pos = -1;
-						for( let j=0; j<value.index[i].length; ++j ) {
-							if( value.index[i][j][0] == idx ) {
-								pos = value.index[i][j][1];
+		max_year = Math.max.apply(null,Object.keys(papers_yearly));
+		min_year = Math.min.apply(null,Object.keys(papers_yearly));
+		for( let year=max_year; year>=min_year; --year ) {
+			if( year in papers_yearly ) {
+				year_found = false;
+				dirs = papers_yearly[year];
+				for( let dir of dirs ) {
+					value = data[dir];
+					paper_found = false;
+					if( search_from == 'contents' ) {
+						for( let i=0; i<value.index.length; ++i ) {
+							let min = value.index[i].length;
+							let max = 0;
+							let window_size = 10;
+							let highlights = [];
+							for( const idx of indices ) {
+								let pos = -1;
+								for( let j=0; j<value.index[i].length; ++j ) {
+									if( value.index[i][j][0] == idx ) {
+										pos = value.index[i][j][1];
+										break;
+									}
+								}
+								min = Math.min(min,pos)
+								max = Math.max(max,pos)
+								if( min < 0 ) break;
+								highlights.push(pos);
+							}
+							if( min >= 0 ) {
+								let words = html_escape(atob(value.words[i])).split(' ');
+								for( const pos of highlights ) {
+									words[pos] = '<em>'+words[pos]+'</em>';
+								}
+								min = Math.max(0,min-window_size);
+								max = Math.min(words.length,max+window_size);
+								text = words.slice(min,max).join(' ');
+								if( max < words.length ) text += '...';
+								//
+								if( ! year_found ) {
+									add_year(body,year);
+									year_found = true;
+								}
+								//
+								if( ! paper_found ) {
+									add_paper(body,dir);
+									paper_found = true;
+								}
+								num_found += 1;
+								//
+								let text_row = document.createElement('div');
+								text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
+								let text_content = document.createElement('div');
+								text_content.className = 'col';
+								text_content.innerHTML = text;
+								text_row.appendChild(text_content);
+								body.appendChild(text_row);
+							}
+						}
+					} else if ( search_from == 'title' ) {
+						let found_all = true;
+						let title = papers[dir]['title'].toLowerCase();
+						for (const word of keywords ) {
+							if( title.indexOf(word) < 0 ) {
+								found_all = false;
 								break;
 							}
 						}
-						min = Math.min(min,pos)
-						max = Math.max(max,pos)
-						if( min < 0 ) break;
-						highlights.push(pos);
-					}
-					if( min >= 0 ) {
-						let words = html_escape(atob(value.words[i])).split(' ');
-						for( const pos of highlights ) {
-							words[pos] = '<em>'+words[pos]+'</em>';
+						if( found_all ) {
+							if( ! year_found ) {
+								add_year(body,year);
+								year_found = true;
+							}
+							add_paper(body,dir);
+							num_found += 1;
 						}
-						min = Math.max(0,min-window_size);
-						max = Math.min(words.length,max+window_size);
-						text = words.slice(min,max).join(' ');
-						if( max < words.length ) text += '...';
-						hide = false;
-						//
-						let text_row = document.createElement('div');
-						text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
-						let text_content = document.createElement('div');
-						text_content.className = 'col';
-						text_content.innerHTML = text;
-						text_row.appendChild(text_content);
-						insert_after(text_row,document.getElementById(key))
-						num_found += 1;
-						document.getElementById(year.toString()).hidden = false;
 					}
-				}
-			} else if ( search_from == 'title' ) {
-				let found_all = true;
-				let title = document.getElementById(key+'-title').textContent.toLowerCase();
-				for (const word of keywords ) {
-					if( title.indexOf(word) < 0 ) {
-						found_all = false;
-						break;
-					}
-				}
-				if( found_all ) {
-					document.getElementById(year.toString()).hidden = false;
-					hide = false;
-					num_found += 1;
 				}
 			}
-			document.getElementById(key).hidden = hide;
 		}
 		if( num_found == 1 ) {
 			$("#status").text('Found 1 occurrence.');
@@ -186,112 +224,106 @@
 			refresh();
 			$("#status").text('Not found');
 		}
-	};
+	}
+	//
+	function add_year( element, year ) {
+		let year_header = document.createElement('div');
+		year_header.className = "row pl-4"
+		year_header.style = "background-color: LightGray;";
+		year_header.id = year.toString();
+		year_header.innerHTML = year.toString();
+		element.appendChild(year_header);
+	}
+	//
+	function add_paper( element, dir ) {
+		// Create paper row
+		let paper = papers[dir];
+		let paper_element = document.createElement('div'); {
+			//
+			paper_element.className = "row";
+			paper_element.id = dir;
+			//
+			// Create thumbnails
+			let thumbnail_header_element = document.createElement('div'); {
+				thumbnail_header_element.className = "w-20 p-2";
+				let pdf_link = document.createElement('a');
+				pdf_link.href = dir+'/'+paper['pdf'];
+				pdf_link.target = '_blank';
+				for (const thumbnail of paper['thumbnails']) {
+					let thumbnail_img_element = document.createElement('img');
+					thumbnail_img_element.src = dir+'/'+thumbnail;
+					thumbnail_img_element.width = 125;
+					thumbnail_img_element.height = 170;
+					thumbnail_img_element.className = "border mr-1";
+					pdf_link.appendChild(thumbnail_img_element);
+				}
+				thumbnail_header_element.appendChild(pdf_link);
+			} paper_element.appendChild(thumbnail_header_element);
+			//
+			// Create body
+			let body_element = document.createElement('div'); {
+				body_element.className = "col p-2 pl-3";
+				//
+				// Create title
+				let title_element = document.createElement('div');
+				title_element.innerHTML = `<h5>${paper['title']}</h5>`;
+				title_element.id = dir+'-title';
+				body_element.appendChild(title_element);
+				//
+				// Create journal
+				let journal_element = document.createElement('div');
+				journal_element.innerHTML = `${paper['journal']}`;
+				body_element.appendChild(journal_element);
+				//
+				// Create authors
+				let authors_element = document.createElement('div');
+				authors_element.innerHTML = `${paper['authors']}`;
+				body_element.appendChild(authors_element);
+				//
+				files_html = '';
+				//
+				// video
+				for (const video of paper['videos']) {
+					files_html += `<a href="${dir+'/'+video}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">${video.split('/').pop()}</a>`
+				}
+				//
+				// file
+				for (const file of paper['files']) {
+					if( files_html ) files_html += ' ';
+					files_html += `<a href="${dir+'/'+file}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">${file.split('/').pop()}</a>`
+				}
+				//
+				// [Files]
+				if( files_html ) files_html += ' ';
+				files_html += `<a href="${dir}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">[Files]</a>`
+				//
+				// [Images]
+				if( 'image_page' in paper ) {
+					if( files_html ) files_html += ' ';
+					files_html += `<a href="${dir+'/'+paper['image_page']}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>`
+				}
+				//
+				let files_element = document.createElement('div');
+				files_element.innerHTML = files_html;
+				files_element.className = "pt-2";
+				body_element.appendChild(files_element);
+				//
+			} paper_element.appendChild(body_element);
+		} element.appendChild(paper_element);
+	}
 	$("#search-button").on('click', function (e) {
-		send_search();
+		search();
 	});
 	$("#keywords-field").on('keyup', function (e) {
-		if( true ) {
-			send_search();
+		if( realtime_search ) {
+			search();
 		} else if (e.key === 'Enter' || e.keyCode === 13) {
-			send_search();
+			search();
 		}
 	});
 	//
-	max_year = Math.max.apply(null,Object.keys(papers_yearly));
-	min_year = Math.min.apply(null,Object.keys(papers_yearly));
+	refresh();
 	//
-	for( let year=max_year; year>=min_year; --year ) {
-		if( year in papers_yearly ) {
-			//
-			// Insert year header
-			dirs = papers_yearly[year];
-			let year_header = document.createElement('div');
-			year_header.className = "row pl-4"
-			year_header.style = "background-color: LightGray;";
-			year_header.id = year.toString();
-			year_header.innerHTML = year.toString();
-			document.body.appendChild(year_header);
-			//
-			// For each paper
-			for (const dir of dirs) {
-				//
-				// Create paper row
-				let paper = papers[dir];
-				let paper_element = document.createElement('div'); {
-					//
-					paper_element.className = "row";
-					paper_element.id = dir;
-					//
-					// Create thumbnails
-					let thumbnail_header_element = document.createElement('div'); {
-						thumbnail_header_element.className = "w-20 p-2";
-						let pdf_link = document.createElement('a');
-						pdf_link.href = dir+'/'+paper['pdf'];
-						pdf_link.target = '_blank';
-						for (const thumbnail of paper['thumbnails']) {
-							let thumbnail_img_element = document.createElement('img');
-							thumbnail_img_element.src = dir+'/'+thumbnail;
-							thumbnail_img_element.width = 125;
-							thumbnail_img_element.height = 170;
-							thumbnail_img_element.className = "border mr-1";
-							pdf_link.appendChild(thumbnail_img_element);
-						}
-						thumbnail_header_element.appendChild(pdf_link);
-					} paper_element.appendChild(thumbnail_header_element);
-					//
-					// Create body
-					let body_element = document.createElement('div'); {
-						body_element.className = "col p-2 pl-3";
-						//
-						// Create title
-						let title_element = document.createElement('div');
-						title_element.innerHTML = `<h5>${paper['title']}</h5>`;
-						title_element.id = dir+'-title';
-						body_element.appendChild(title_element);
-						//
-						// Create journal
-						let journal_element = document.createElement('div');
-						journal_element.innerHTML = `${paper['journal']}`;
-						body_element.appendChild(journal_element);
-						//
-						// Create authors
-						let authors_element = document.createElement('div');
-						authors_element.innerHTML = `${paper['authors']}`;
-						body_element.appendChild(authors_element);
-						//
-						files_html = '';
-						// video
-						for (const video of paper['videos']) {
-							files_html += `<a href="${dir+'/'+video}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">${video.split('/').pop()}</a>`
-						}
-						//
-						// file
-						for (const file of paper['files']) {
-							if( files_html ) files_html += ' ';
-							files_html += `<a href="${dir+'/'+file}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">${file.split('/').pop()}</a>`
-						}
-						//
-						// [Files]
-						if( files_html ) files_html += ' ';
-						files_html += `<a href="${dir}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">[Files]</a>`
-						//
-						// [Images]
-						if( 'image_page' in paper ) {
-							if( files_html ) files_html += ' ';
-							files_html += `<a href="${dir+'/'+paper['image_page']}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>`
-						}
-						//
-						let files_element = document.createElement('div');
-						files_element.innerHTML = files_html;
-						files_element.className = "pt-2";
-						body_element.appendChild(files_element);
-						//
-					} paper_element.appendChild(body_element);
-				} document.body.appendChild(paper_element);
-			}
-		}
-	}
 </script>
 		<!-- Optional JavaScript -->
 		<!-- Popper.js, then Bootstrap JS -->
