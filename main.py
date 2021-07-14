@@ -294,6 +294,7 @@ if __name__ == '__main__':
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
 	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
+	server_port = config['DEFAULT']['server_port']
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -413,6 +414,7 @@ const papers_yearly = {1};
 '''.format(json.dumps(database),json.dumps(database_yearly))
 	#
 	papers_js += f'const token = "{secrets.token_urlsafe(8)}"\n'
+	papers_js += f'const server_port = {server_port}\n'
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
 	#

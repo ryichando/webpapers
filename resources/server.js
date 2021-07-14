@@ -2,7 +2,6 @@ const vm = require('vm');
 const fs = require('fs');
 const express = require('express')
 const app = express()
-const port = 3000
 //
 // https://stackoverflow.com/questions/4481058/load-and-execute-external-js-file-in-node-js-with-access-to-local-variables
 function import_js( path ) {
@@ -42,6 +41,6 @@ app.get('/', (req, res) => {
 	}
 })
 //
-app.listen(port, () => {
-	console.log(`Example app listening at http://localhost:${port}`)
+app.listen(server_port, () => {
+	console.log(`Example app listening at http://localhost:${server_port}`)
 })
