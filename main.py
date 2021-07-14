@@ -197,7 +197,7 @@ def process_directory( root, dir ):
 				break
 		if create_flag:
 			print( "Generating thumbnails for {}...".format(dir))
-			os.mkdir(mkpath(root,dir,'thumbnails'))
+			os.makedirs(mkpath(root,dir,'thumbnails'),exist_ok=True)
 			run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(root,dir)),thumbnail_page_count,quote(pdf)))
 			for i in range(thumbnail_page_count):
 				thumbnail_name = f'/thumbnails/thumbnail-{i+1}.jpg'
