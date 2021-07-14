@@ -68,7 +68,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							highlights.push(pos);
 						}
 						if( min >= 0 ) {
-							let words = html_escape(atob(value.words[i])).split(' ');
+							let words = html_escape(Buffer.from(value.words[i],'base64').toString()).split(' ');
 							for( const pos of highlights ) {
 								words[pos] = '<em>'+words[pos]+'</em>';
 							}
