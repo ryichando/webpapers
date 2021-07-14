@@ -337,14 +337,12 @@ if __name__ == '__main__':
 	context = {
 		'search_hide' : '' if enable_search else 'hidden',
 		'page_title' : page_title,
-		'resource_dir' : resource_dir,
-		'button_hide' : 'hidden' if realtime_search else '',
 		'realtime_search' : 'true' if realtime_search else 'false',
 	}
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()
 		with open(root+'/index.html','w') as file:
-			file.write(data.format_map(context))
+			file.write(replace_text_by_dictionary(data,context))
 	#
 	# Build paper references
 	insert_js = '''
