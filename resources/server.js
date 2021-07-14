@@ -21,16 +21,17 @@ app.get('/', (req, res) => {
 		res.send('Wrong token');
 	} else {
 		if( req.query.array ) {
-			let keywords = req.query.array.split(',');
-			console.log(keywords);
+			const keywords = req.query.array.split(',');
+			const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+			console.log( `ip: ${ip} keywords: ${keywords}`);
 			result = [];
-			let add_year = function ( year ) {
+			const add_year = function ( year ) {
 				result.push(['add_year',year]);
 			};
-			let add_paper = function ( dir ) {
+			const add_paper = function ( dir ) {
 				result.push(['add_paper',dir]);
 			};
-			let add_snippet = function ( text ) {
+			const add_snippet = function ( text ) {
 				result.push(['add_snippet',text]);
 			};
 			result.push(['result',search ( keywords, add_year, add_paper, add_snippet )]);
