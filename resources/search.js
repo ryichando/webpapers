@@ -1,4 +1,19 @@
-function search ( keywords, papers_yearly, data, word_table, add_year, add_paper, add_snippet ) {
+function search ( keywords, add_year, add_paper, add_snippet ) {
+	//
+	const html_escape = function (str) {
+		if (!str) return;
+		return str.replace(/[<>&"'`]/g, function(match) {
+			const escape_chars = {
+				'<': '&lt;',
+				'>': '&gt;',
+				'&': '&amp;',
+				'"': '&quot;',
+				"'": '&#39;',
+				'`': '&#x60;'
+			};
+		return escape_chars[match];
+		});
+	};
 	//
 	let search_from = 'contents';
 	for (const word of keywords ) {

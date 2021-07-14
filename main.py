@@ -293,6 +293,7 @@ if __name__ == '__main__':
 	convert_video = config['DEFAULT']['convert_video'] == 'yes'
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
+	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -335,9 +336,11 @@ if __name__ == '__main__':
 	#
 	# Generate HTML
 	context = {
-		'search_hide' : '' if enable_search else 'hidden',
+		'search_hide' : 'hidden' if realtime_search else '',
 		'page_title' : page_title,
 		'realtime_search' : 'true' if realtime_search else 'false',
+		'server_side_search' : 'true' if server_side_search else 'false',
+		'include_data_js' : '' if server_side_search else '<script src="data.js"></script>',
 	}
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()
@@ -424,3 +427,4 @@ papers_yearly = {1};
 	#
 	# Copy resources
 	run_command('cp -rf {} {}'.format(resource_dir,root))
+	run_command('cp -f {}/server.js {}'.format(resource_dir,root))

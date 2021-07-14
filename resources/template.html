@@ -12,12 +12,12 @@
 		<link rel="stylesheet" href="resources/bootstrap.min.css">
 
 		<!-- Modules -->
-		<script src="resources/jquery-3.2.1.slim.min.js"></script>
+		<script src="resources/jquery-3.6.0.min.js"></script>
 
-		<!-- Data -->
+		<!-- Javascript -->
 		<script src="papers.js"></script>
-		<script src="data.js"></script>
-		<script src="resources/search_client.js"></script>
+		<script src="resources/search.js"></script>
+		include_data_js
 
 		<!-- Style -->
 		<style>
@@ -58,20 +58,6 @@
 			//
 			g_body = document.getElementById('papers');
 			//
-			function html_escape(str) {
-				if (!str) return;
-				return str.replace(/[<>&"'`]/g, function(match) {
-					const escape_chars = {
-						'<': '&lt;',
-						'>': '&gt;',
-						'&': '&amp;',
-						'"': '&quot;',
-						"'": '&#39;',
-						'`': '&#x60;'
-					};
-				return escape_chars[match];
-				});
-			}
 			function clear() {
 				g_body.innerHTML = '';
 			}
@@ -197,22 +183,61 @@
 			//
 			function search_helper() {
 				//
+				let set_status = function ( result ) {
+					if( result == -2 ) {
+						$("#status").text('Error');
+					} else if( result == -1 ) {
+						refresh();
+					} else {
+						if( result == 1 ) {
+							$("#status").text('Found 1 occurrence.');
+						} else if( result > 1 ) { 
+							$("#status").text('Found '+result+' occurrences.');
+						} else {
+							$("#status").text('Not found');
+						}
+					}
+				};
+				//
 				clear();
+				//
 				document.getElementById("status").hidden = false;
 				$("#status").text('Processing...');
 				//
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
-				let result = search(keywords,papers_yearly,data,word_table,add_year,add_paper,add_snippet);
-				if( result == -1 ) {
-					refresh();
-				} else {
-					if( result == 1 ) {
-						$("#status").text('Found 1 occurrence.');
-					} else if( result > 1 ) { 
-						$("#status").text('Found '+result+' occurrences.');
+				if( server_side_search ) {
+					if( keywords && keywords != "" ) {
+						$.get(`http://localhost:3000?array=${keywords.join()}`).done(function(data,status){
+							if( status == 'success') {
+								for( action of data ) {
+									switch( action[0] ) {
+										case 'add_year':
+											add_year(action[1]);
+											break;
+										case 'add_paper':
+											add_paper(action[1]);
+											break;
+										case 'add_snippet':
+											add_snippet(action[1]);
+											break;
+										case 'result':
+											set_status(action[1]);
+											break;
+										default:
+											console.log('Unknown action: '+action);
+											console.log(`keywords = "${keywords}"` );
+									}
+								}
+							} else {
+								console.log('Error: '+status);
+								set_status(-2);
+							}
+						});
 					} else {
-						$("#status").text('Not found');
+						set_status(-1);
 					}
+				} else {
+					set_status(search(keywords,add_year,add_paper,add_snippet));
 				}
 			}
 			//
@@ -230,6 +255,7 @@
 			refresh();
 			//
 		</script>
+		
 		<!-- Optional JavaScript -->
 		<!-- Popper.js, then Bootstrap JS -->
 		<script src="resources/popper.min.js"></script>
