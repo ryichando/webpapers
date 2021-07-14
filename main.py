@@ -297,6 +297,7 @@ if __name__ == '__main__':
 	server_port = config['DEFAULT']['server_port']
 	server_url = config['DEFAULT']['server_url'].replace('{server_port}',str(server_port))
 	num_max_search_hit = int(config['DEFAULT']['num_max_search_hit'])
+	show_all = config['DEFAULT']['show_all'] == 'yes'
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -416,9 +417,10 @@ const papers = {0};
 const papers_yearly = {1};
 '''.format(json.dumps(database),json.dumps(database_yearly))
 	#
-	papers_js += f'const token = "{secrets.token_urlsafe(8)}"\n'
-	papers_js += f'const server_port = {server_port}\n'
-	papers_js += f'const num_max_search_hit = {num_max_search_hit}'
+	papers_js += f'const token = "{secrets.token_urlsafe(8)};"\n'
+	papers_js += f'const server_port = {server_port};\n'
+	papers_js += f'const num_max_search_hit = {num_max_search_hit};\n'
+	papers_js += f'const show_all = {"true" if show_all else "false"};\n'
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
 	#

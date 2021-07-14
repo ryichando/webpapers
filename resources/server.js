@@ -1,6 +1,7 @@
 const vm = require('vm');
 const fs = require('fs');
 const express = require('express')
+const moment = require('moment')
 const app = express()
 //
 // https://stackoverflow.com/questions/4481058/load-and-execute-external-js-file-in-node-js-with-access-to-local-variables
@@ -25,7 +26,8 @@ app.get('/', (req, res) => {
 		if( req.query.array ) {
 			const keywords = req.query.array.split(',');
 			const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
-			console.log( `ip: ${ip} keywords: ${keywords}`);
+			const timestamps = moment().format('MMMM Do YYYY, h:mm:ss a')
+			console.log( `<${timestamps}> ip: ${ip} keywords: ${keywords}`);
 			result = [];
 			const add_year = function ( year ) {
 				result.push(['add_year',year]);

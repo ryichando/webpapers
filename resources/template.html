@@ -66,18 +66,21 @@
 				clear();
 				document.getElementById("status").hidden = true;
 				document.querySelectorAll('.search-result').forEach(e => e.remove());
-				max_year = Math.max.apply(null,Object.keys(papers_yearly));
-				min_year = Math.min.apply(null,Object.keys(papers_yearly));
-				for( let year=max_year; year>=min_year; --year ) {
-					if( year in papers_yearly ) {
-						//
-						// Insert year header
-						add_year(year);
-						//
-						// For each paper
-						dirs = papers_yearly[year];
-						for (const dir of dirs) {
-							add_paper(dir);
+				//
+				if( show_all ) {
+					max_year = Math.max.apply(null,Object.keys(papers_yearly));
+					min_year = Math.min.apply(null,Object.keys(papers_yearly));
+					for( let year=max_year; year>=min_year; --year ) {
+						if( year in papers_yearly ) {
+							//
+							// Insert year header
+							add_year(year);
+							//
+							// For each paper
+							dirs = papers_yearly[year];
+							for (const dir of dirs) {
+								add_paper(dir);
+							}
 						}
 					}
 				}
