@@ -362,6 +362,7 @@ data = {{}};
 		#
 		for dir,paper in database.items():
 			#
+			year = paper['year']
 			pdf = paper['pdf']
 			print( 'Analyzing {}...'.format(dir))
 			lines = pdfdump.dump(mkpath(root,dir,pdf))
