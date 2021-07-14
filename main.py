@@ -302,7 +302,7 @@ if __name__ == '__main__':
 			if dir in ['__pycache__',resource_dir]:
 				print( f'Deleting {root}/{dir}...' )
 				shutil.rmtree(root+'/'+dir)
-			elif dir in ['bibtex.bib','index.html','data.js']:
+			elif dir in ['bibtex.bib','index.html','data.js','papers.js']:
 				file = root+'/'+dir
 				print( f'Deleting {file}...')
 				os.remove(file)
@@ -345,11 +345,7 @@ if __name__ == '__main__':
 			file.write(replace_text_by_dictionary(data,context))
 	#
 	# Build paper references
-	insert_js = '''
-papers = {0};
-papers_yearly = {1};
-data = {{}};
-'''.format(json.dumps(database),json.dumps(database_yearly))
+	data_js = 'data = {};\n'
 	#
 	# Add search index
 	if enable_search:
@@ -394,7 +390,7 @@ data = {{}};
 					head_pos += 1
 				indices.append(line_indices)
 			#
-			insert_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
+			data_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
 				dir,
 				year,
 				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
@@ -402,11 +398,19 @@ data = {{}};
 			)
 		#
 		# Write word table
-		insert_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+		data_js += 'let word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
 	#
 	# Generate Javascript file
 	with open(root+'/data.js','w') as file:
-		file.write(insert_js)
+		file.write(data_js)
+	#
+	papers_js = '''
+papers = {0};
+papers_yearly = {1};
+'''.format(json.dumps(database),json.dumps(database_yearly))
+	#
+	with open(root+'/papers.js','w') as file:
+		file.write(papers_js)
 	#
 	# Generate BibTeX
 	entries = {}
@@ -419,5 +423,4 @@ data = {{}};
 			BibliographyData(entries).to_file(file)
 	#
 	# Copy resources
-	if not os.path.exists(root+'/'+resource_dir):
-		run_command('cp -r {} {}'.format(resource_dir,root))
+	run_command('cp -rf {} {}'.format(resource_dir,root))
