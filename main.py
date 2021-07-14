@@ -295,6 +295,7 @@ if __name__ == '__main__':
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
 	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
 	server_port = config['DEFAULT']['server_port']
+	server_url = config['DEFAULT']['server_url'].replace('{server_port}',str(server_port))
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -342,6 +343,7 @@ if __name__ == '__main__':
 		'realtime_search' : 'true' if realtime_search else 'false',
 		'server_side_search' : 'true' if server_side_search else 'false',
 		'include_data_js' : '' if server_side_search else '<script src="data.js"></script>',
+		'server_url' : server_url,
 	}
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()

@@ -16,8 +16,10 @@ import_js('./resources/search.js');
 app.get('/', (req, res) => {
 	res.header('Access-Control-Allow-Origin','*')
 	if( ! req.query.token ) {
+		res.status(500)
 		res.send('Token not defined');
 	} else if( req.query.token != token ) {
+		res.status(500)
 		res.send('Wrong token');
 	} else {
 		if( req.query.array ) {

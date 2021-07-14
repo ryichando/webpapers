@@ -185,7 +185,7 @@
 				//
 				let set_status = function ( result ) {
 					if( result == -2 ) {
-						$("#status").text('Error');
+						$("#status").text('Error (see console)');
 					} else if( result == -1 ) {
 						refresh();
 					} else {
@@ -205,9 +205,9 @@
 				$("#status").text('Processing...');
 				//
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
-				if( server_side_search ) {
+				if( true ) {
 					if( keywords && keywords != "" ) {
-						$.get(`http://localhost:${server_port}?token=${token}&array=${keywords.join()}`).done(function(data,status){
+						$.get(`http://localhost:3600?token=${token}&array=${keywords.join()}`).done(function(data,status){
 							if( status == 'success') {
 								for( action of data ) {
 									switch( action[0] ) {
@@ -229,9 +229,10 @@
 									}
 								}
 							} else {
-								console.log('Error: '+status);
 								set_status(-2);
 							}
+						}).fail(function() {
+							set_status(-2);
 						});
 					} else {
 						set_status(-1);
