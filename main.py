@@ -189,7 +189,13 @@ def process_directory( root, dir ):
 	if os.path.exists(mkpath(root,dir,pdf)):
 		#
 		# Generate PDF thumbnail
-		if not os.path.exists(mkpath(root,dir,'thumbnails')):
+		create_flag = False
+		for i in range(thumbnail_page_count):
+			thumbnail_name = f'thumbnails/thumbnail-{i+1}.jpg'
+			if not os.path.exists(mkpath(root,dir,thumbnail_name)):
+				create_flag = True
+				break
+		if create_flag:
 			print( "Generating thumbnails for {}...".format(dir))
 			os.mkdir(mkpath(root,dir,'thumbnails'))
 			run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(root,dir)),thumbnail_page_count,quote(pdf)))
