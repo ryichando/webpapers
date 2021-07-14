@@ -207,7 +207,7 @@
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
 				if( true ) {
 					if( keywords && keywords != "" ) {
-						$.get(`http://localhost:3600?token=${token}&array=${keywords.join()}`).done(function(data,status){
+						$.get(`server_url?token=${token}&array=${keywords.join()}`).done(function(data,status){
 							if( status == 'success') {
 								for( action of data ) {
 									switch( action[0] ) {
