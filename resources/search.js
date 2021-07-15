@@ -68,7 +68,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 					for( let i=0; i<value.index.length; ++i ) {
 						let min = value.index[i].length;
 						let max = 0;
-						let window_size = 10;
+						const margin_window = 10;
 						let highlights = [];
 						for( const idx of indices ) {
 							let pos = -1;
@@ -94,8 +94,8 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							for( const pos of highlights ) {
 								words[pos] = '<em>'+words[pos]+'</em>';
 							}
-							min = Math.max(0,min-window_size);
-							max = Math.min(words.length,max+window_size);
+							min = Math.max(0,min-margin_window);
+							max = Math.min(words.length,max+margin_window);
 							text = words.slice(min,max).join(' ');
 							if( max < words.length ) text += '...';
 							//

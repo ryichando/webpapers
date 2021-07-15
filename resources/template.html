@@ -56,7 +56,7 @@
 
 		<div class="row mb-2">
 			<div class="col text-center">
-				<div class="badge badge-pill badge-info" id="status"></div>
+				<div id="status"></div>
 			</div>
 		</div>
 
@@ -76,14 +76,18 @@
 			function clear() {
 				g_body.innerHTML = '';
 			}
+			function set_status( message, color ) {
+				$("#status").text(message);
+				document.getElementById("status").className = `badge badge-pill badge-${color}`;
+			}
 			function refresh () {
 				//
 				clear();
 				if ( server_side_search && enable_search ) {
 					$.get(`${server_url}?token=${token}&ping=1`).done(function(data,status) {
-						$("#status").text(data);
+						set_status(data,'info');
 					}).fail(function() {
-						$("#status").text('Server is offline');
+						set_status('Server is offline','danger');
 					});
 				} else {
 					document.getElementById("status").hidden = true;
@@ -212,7 +216,7 @@
 				clear();
 				//
 				document.getElementById("status").hidden = false;
-				$("#status").text('Processing...');
+				set_status('Processing...','info');
 				//
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
 				if( keywords && keywords != "" ) {
@@ -236,7 +240,7 @@
 												document.getElementById("status").hidden = true;
 												refresh();
 											} else {
-												$("#status").text(message);
+												set_status(message,'info');
 											}
 											break;
 										default:
@@ -245,13 +249,13 @@
 									}
 								}
 							} else {
-								$("#status").text('Error (see console)');
+								set_status('Error (see console)','danger');
 							}
 						}).fail(function() {
-							$("#status").text('Error (see console)');
+							set_status('Error (see console)','danger');
 						});
 					} else {
-						$("#status").text(search(keywords,add_year,add_paper,add_snippet));
+						set_status(search(keywords,add_year,add_paper,add_snippet),'info');
 					}
 				} else {
 					refresh();
