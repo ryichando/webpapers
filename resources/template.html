@@ -61,7 +61,7 @@
 
 		<script>
 			//
-			if( server_side_search ) {
+			if( ! server_side_search ) {
 				let data_js = document.createElement("script");
 				data_js.setAttribute("src", "data.js");
 				document.body.appendChild(data_js);
