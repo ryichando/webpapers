@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
 		<!-- Title -->
-		<title>page_title</title>
+		<title></title>
 
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="resources/bootstrap.min.css">
@@ -18,7 +18,6 @@
 		<script src="papers.js"></script>
 		<script src="config.js"></script>
 		<script src="resources/search.js"></script>
-		include_data_js
 
 		<!-- Style -->
 		<style>
@@ -35,13 +34,18 @@
 			<div class="col-1"></div>
 			<div class="col text-center">
 				<div class="pt-1">
-					<h3>page_title</h3>
+					<h3><div id="page_title"></div></h3>
 				</div>
 				<div class="input-group" >
 					<input type="text" class="form-control" placeholder="Type your keywords" aria-label="search keywords" aria-describedby="button-addon2" id="keywords-field">
-					<div class="input-group-append" search_hide>
+					<div class="input-group-append">
 						<button type="button" class="btn btn-outline-secondary" id="search-button">Search</button>
 					</div>
+					<script>
+						if( realtime_search ) {
+							document.getElementById("search-button").hidden = true;
+						}
+					</script>
 				</div>
 			</div>
 			<div class="col-1"></div>
@@ -57,6 +61,13 @@
 
 		<script>
 			//
+			if( server_side_search ) {
+				let data_js = document.createElement("script");
+				data_js.setAttribute("src", "data.js");
+				document.body.appendChild(data_js);
+			}
+			document.title = page_title
+			document.getElementById('page_title').innerHTML = page_title;
 			g_body = document.getElementById('papers');
 			//
 			function clear() {
@@ -160,7 +171,7 @@
 						files_html += `<a href="${dir}" target="_blank" style="padding-right: 0.5rem; white-space: pre;">[Files]</a>`
 						//
 						// [Images]
-						if( 'image_page' in paper ) {
+						if( paper['image_page'] ) {
 							if( files_html ) files_html += ' ';
 							files_html += `<a href="${dir+'/'+paper['image_page']}" target="_blank" style="padding-right: 0.75rem; white-space: pre;">[Images]</a>`
 						}
@@ -195,7 +206,7 @@
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
 				if( keywords && keywords != "" ) {
 					if( server_side_search ) {
-						$.get(`server_url?token=${token}&array=${keywords.join()}`).done(function(data,status){
+						$.get(`${server_url}?token=${token}&array=${keywords.join()}`).done(function(data,status){
 							if( status == 'success') {
 								for( action of data ) {
 									switch( action[0] ) {

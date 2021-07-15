@@ -78,6 +78,7 @@ def process_directory( root, dir ):
 	pdf = 'main.pdf'
 	authors = None
 	journal = None
+	image_path = None
 	thumbnails = []
 	files = []
 	videos = []
@@ -230,51 +231,51 @@ def process_directory( root, dir ):
 			thumbnails.append(thumbnail_name)
 		#
 		# Extract images from PDF
-		if not os.path.exists(mkpath(root,dir,'images')) and len(info.pages) <= image_page_limit:
-			print( f"Extracting images for {dir}..." )
-			os.mkdir(mkpath(root,dir,'images'))
-			run_command("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(root,dir)),quote(pdf)))
-			run_command("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(root,dir))))
-			run_command("find {0}/images -type f ! -name '*.jpg' -delete".format(quote(mkpath(root,dir))))
+		if extract_images:
+			if not os.path.exists(mkpath(root,dir,'images')) and len(info.pages) <= image_page_limit:
+				print( f"Extracting images for {dir}..." )
+				os.mkdir(mkpath(root,dir,'images'))
+				run_command("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(root,dir)),quote(pdf)))
+				run_command("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(root,dir))))
+				run_command("find {0}/images -type f ! -name '*.jpg' -delete".format(quote(mkpath(root,dir))))
+				#
+				# Remove if the either the file size is too small or the resolution is too low
+				remove_list = []
+				for img in os.listdir(mkpath(root,dir,'images')):
+					img_path = mkpath(root,dir,'images/')+img
+					try:
+						width,height = Image.open(img_path).size;
+						if width < image_dimension_limit or height < image_dimension_limit:
+							remove_list.append(img_path)
+						elif os.path.getsize(img_path) < image_filesize_limit:
+							remove_list.append(img_path)
+					except:
+						remove_list.append(img_path)
+				for img_path in remove_list:
+					os.remove(img_path)
 			#
-			# Remove if the either the file size is too small or the resolution is too low
-			remove_list = []
-			for img in os.listdir(mkpath(root,dir,'images')):
-				img_path = mkpath(root,dir,'images/')+img
-				try:
-					width,height = Image.open(img_path).size;
-					if width < image_dimension_limit or height < image_dimension_limit:
-						remove_list.append(img_path)
-					elif os.path.getsize(img_path) < image_filesize_limit:
-						remove_list.append(img_path)
-				except:
-					remove_list.append(img_path)
-			for img_path in remove_list:
-				os.remove(img_path)
-		#
-		# Generate HTML files for the "images" page
-		if os.path.exists(mkpath(root,dir,'images')) and len(os.listdir(mkpath(root,dir,'images'))):
-			insert_html = ''
-			for img in os.listdir(mkpath(root,dir,'images')):
-				insert_html += '<div class="row">\n'
-				insert_html += '<div>\n'
-				insert_html += '<a href=\"{0}"><img src="{0}" style="max-width: 100%;"/></a>\n'.format(img)
-				insert_html += '</div>\n'
-				insert_html += '</div>\n'
-			context = {
-				'title': title,
-				'insert_html' : insert_html,
-				'resource_dir' : resource_dir,
-			}
-			with open('{}/image-template.html'.format(resource_dir),'r') as template:
-				data = template.read()
-				with open(mkpath(root,dir)+'/images/index.html','w') as file:
-					file.write(data.format_map(context))
-	#
-	image_path = 'images/index.html'
-	if not os.path.exists(mkpath(root,dir,image_path)):
-		image_path = None
-	#
+			# Generate HTML files for the "images" page
+			if os.path.exists(mkpath(root,dir,'images')) and len(os.listdir(mkpath(root,dir,'images'))):
+				insert_html = ''
+				for img in os.listdir(mkpath(root,dir,'images')):
+					insert_html += '<div class="row">\n'
+					insert_html += '<div>\n'
+					insert_html += '<a href=\"{0}"><img src="{0}" style="max-width: 100%;"/></a>\n'.format(img)
+					insert_html += '</div>\n'
+					insert_html += '</div>\n'
+				context = {
+					'title': title,
+					'insert_html' : insert_html,
+					'resource_dir' : resource_dir,
+				}
+				with open('{}/image-template.html'.format(resource_dir),'r') as template:
+					data = template.read()
+					with open(mkpath(root,dir)+'/images/index.html','w') as file:
+						file.write(data.format_map(context))
+			#
+			image_path = 'images/index.html'
+			if not os.path.exists(mkpath(root,dir,image_path)):
+				image_path = None
 	return {
 		'year' : int(year),
 		'pdf' : pdf,
@@ -294,7 +295,7 @@ if __name__ == '__main__':
 	# Parse arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument('root', help='Root directory')
-	parser.add_argument('--clean', action='store_true')
+	parser.add_argument('--clean', help='Clean flag')
 	args = parser.parse_args()
 	root = args.root
 	#
@@ -303,6 +304,7 @@ if __name__ == '__main__':
 	config.read('{}/config.ini'.format(root))
 	page_title = config['DEFAULT']['page_title']
 	thumbnail_page_count = int(config['DEFAULT']['thumbnail_page_count'])
+	extract_images = config['DEFAULT']['extract_images'] == 'yes'
 	image_filesize_limit = int(config['DEFAULT']['image_filesize_limit'])
 	image_dimension_limit = int(config['DEFAULT']['image_dimension_limit'])
 	image_page_limit = int(config['DEFAULT']['image_page_limit'])
@@ -319,18 +321,28 @@ if __name__ == '__main__':
 	#
 	# If the "clean" flag is specified, clean them all
 	if args.clean:
-		print( 'Cleaning...' )
+		print( f'Cleaning...{args.clean}' )
+		clean_lists = []
+		if args.clean == 'all' or args.clean == 'data':
+			clean_lists.extend(['index.html','data.js','papers.js','config.js'])
+		if args.clean == 'all' or args.clean == 'thumbnail':
+			clean_lists.append('thumbnails')
+		if args.clean == 'all' or args.clean == 'image':
+			clean_lists.append('images')
+		if args.clean == 'all' or args.clean == 'video':
+			clean_lists.append('converted')
+		#		
 		for dir in os.listdir(root):
 			if dir in ['__pycache__',resource_dir]:
 				print( f'Deleting {root}/{dir}...' )
 				shutil.rmtree(root+'/'+dir)
-			elif dir in ['index.html','data.js','papers.js','config.js']:
+			elif dir in clean_lists:
 				file = root+'/'+dir
 				print( f'Deleting {file}...')
 				os.remove(file)
 		for current_dir, dirs, files in os.walk(root):
 			for dir in dirs:
-				if dir in ['thumbnails','images','converted','analysis']:
+				if dir in clean_lists:
 					print(f'Deleting {current_dir}/{dir}...')
 					shutil.rmtree(current_dir+'/'+dir)
 		sys.exit(0)
@@ -360,18 +372,10 @@ if __name__ == '__main__':
 		sys.exit(0)
 	#
 	# Generate HTML
-	context = {
-		'search_hide' : 'hidden' if realtime_search else '',
-		'page_title' : page_title,
-		'realtime_search' : 'true' if realtime_search else 'false',
-		'server_side_search' : 'true' if server_side_search else 'false',
-		'include_data_js' : '' if server_side_search else '<script src="data.js"></script>',
-		'server_url' : server_url,
-	}
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()
 		with open(root+'/index.html','w') as file:
-			file.write(replace_text_by_dictionary(data,context))
+			file.write(data)
 	#
 	# Build paper references
 	data_js = 'data = {};\n'
@@ -446,6 +450,11 @@ const papers_yearly = {1};
 	config_js += f'const num_max_search_hit = {num_max_search_hit};\n'
 	config_js += f'const show_all = {"true" if show_all else "false"};\n'
 	config_js += f'const word_window_size = {word_window_size};\n'
+	config_js += f'const realtime_search = {"true" if realtime_search else "false"};\n'
+	config_js += f'const page_title = "{page_title}";\n'
+	config_js += f'const server_side_search = {"true" if server_side_search else "false"};\n'
+	config_js += f'const server_url = "{server_url}";\n'
+	#
 	with open(root+'/config.js','w') as file:
 		file.write(config_js)
 	#
