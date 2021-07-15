@@ -320,7 +320,7 @@ if __name__ == '__main__':
 			if dir in ['__pycache__',resource_dir]:
 				print( f'Deleting {root}/{dir}...' )
 				shutil.rmtree(root+'/'+dir)
-			elif dir in ['index.html','data.js','papers.js']:
+			elif dir in ['index.html','data.js','papers.js','config.js']:
 				file = root+'/'+dir
 				print( f'Deleting {file}...')
 				os.remove(file)
@@ -433,15 +433,17 @@ if __name__ == '__main__':
 const papers = {0};
 const papers_yearly = {1};
 '''.format(json.dumps(database),json.dumps(database_yearly))
-	#
-	papers_js += f'const token = "{secrets.token_urlsafe(8)};"\n'
-	papers_js += f'const server_port = {server_port};\n'
-	papers_js += f'const num_max_search_hit = {num_max_search_hit};\n'
-	papers_js += f'const show_all = {"true" if show_all else "false"};\n'
-	papers_js += f'const word_window_size = {word_window_size};\n'
-	#
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
+	#
+	config_js = ''
+	config_js += f'const token = "{secrets.token_urlsafe(8)};"\n'
+	config_js += f'const server_port = {server_port};\n'
+	config_js += f'const num_max_search_hit = {num_max_search_hit};\n'
+	config_js += f'const show_all = {"true" if show_all else "false"};\n'
+	config_js += f'const word_window_size = {word_window_size};\n'
+	with open(root+'/config.js','w') as file:
+		file.write(config_js)
 	#
 	# Copy resources
 	run_command('cp -rf {} {}'.format(resource_dir,root))

@@ -10,8 +10,10 @@ function import_js( path ) {
 	const script = new vm.Script(fs.readFileSync(path));
 	script.runInThisContext();
 }
+//
 import_js('./papers.js');
 import_js('./data.js');
+import_js('./config.js')
 import_js('./resources/search.js');
 //
 app.get('/', (req, res) => {
@@ -38,7 +40,7 @@ app.get('/', (req, res) => {
 			const add_snippet = function ( text ) {
 				result.push(['add_snippet',text]);
 			};
-			result.push(['result',search ( keywords, add_year, add_paper, add_snippet )]);
+			result.push(['done',search ( keywords, add_year, add_paper, add_snippet )]);
 			res.json(result);
 		} else {
 			res.send('Array not defined');

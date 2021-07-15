@@ -16,6 +16,7 @@
 
 		<!-- Javascript -->
 		<script src="papers.js"></script>
+		<script src="config.js"></script>
 		<script src="resources/search.js"></script>
 		include_data_js
 
@@ -186,36 +187,14 @@
 			//
 			function search_helper() {
 				//
-				let set_status = function ( result ) {
-					if( num_max_search_hit > 0 && result == num_max_search_hit ) {
-						$("#status").text('Found '+result+' occurrences (exceed max).');
-					} else {
-						if( result == -3 ) {
-							$("#status").text('All the papers');
-						} else if( result == -2 ) {
-							$("#status").text('Error (see console)');
-						} else if( result == -1 ) {
-							refresh();
-						} else {
-							if( result == 1 ) {
-								$("#status").text('Found 1 occurrence.');
-							} else if( result > 1 ) { 
-								$("#status").text('Found '+result+' occurrences.');
-							} else {
-								$("#status").text('Not found');
-							}
-						}
-					}
-				};
-				//
 				clear();
 				//
 				document.getElementById("status").hidden = false;
 				$("#status").text('Processing...');
 				//
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
-				if( true ) {
-					if( keywords && keywords != "" ) {
+				if( keywords && keywords != "" ) {
+					if( server_side_search ) {
 						$.get(`server_url?token=${token}&array=${keywords.join()}`).done(function(data,status){
 							if( status == 'success') {
 								for( action of data ) {
@@ -229,8 +208,14 @@
 										case 'add_snippet':
 											add_snippet(action[1]);
 											break;
-										case 'result':
-											set_status(action[1]);
+										case 'done':
+											message = action[1];
+											if( message == '' ) {
+												document.getElementById("status").hidden = true;
+												refresh();
+											} else {
+												$("#status").text(message);
+											}
 											break;
 										default:
 											console.log('Unknown action: '+action);
@@ -238,16 +223,16 @@
 									}
 								}
 							} else {
-								set_status(-2);
+								$("#status").text('Error (see console)');
 							}
 						}).fail(function() {
-							set_status(-2);
+							$("#status").text('Error (see console)');
 						});
 					} else {
-						set_status(-1);
+						$("#status").text(search(keywords,add_year,add_paper,add_snippet));
 					}
 				} else {
-					set_status(search(keywords,add_year,add_paper,add_snippet));
+					refresh();
 				}
 			}
 			//

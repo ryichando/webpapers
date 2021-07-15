@@ -17,18 +17,17 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 	//
 	let search_from = 'contents';
 	let show_all = false;
-	for (const word of keywords ) {
+	if( keywords.length ) {
+		const word = keywords[0];
 		if( word == 'title:' ) {
 			search_from = 'title';
 			keywords.splice(keywords.indexOf('title:'),1);
-			break;
 		} else if( word == 'all:' ) {
 			show_all = true;
-			break;
 		}
 	}
 	if( keywords.length == 0 || keywords[0] == "" ) {
-		return -1;
+		return '';
 	}
 	//
 	num_found = 0;
@@ -44,7 +43,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 				}
 			}
 		}
-		return -3;
+		return '';
 	}
 	//
 	let indices = [];
@@ -53,7 +52,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 			if ( word in word_table ) {
 				indices.push(word_table[word])
 			} else {
-				return 0;
+				return 'Not found';
 			}
 		}
 	}
@@ -86,7 +85,12 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							highlights.push(pos);
 						}
 						if( min >= 0 ) {
-							let words = html_escape(Buffer.from(value.words[i],'base64').toString()).split(' ');
+							let words;
+							if (typeof window === 'undefined') {
+								words = html_escape(Buffer.from(value.words[i],'base64').toString()).split(' ');
+							} else {
+								words = html_escape(window.atob(value.words[i]).toString()).split(' ');
+							}
 							for( const pos of highlights ) {
 								words[pos] = '<em>'+words[pos]+'</em>';
 							}
@@ -107,7 +111,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							num_found += 1;
 							add_snippet(text);
 							if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
-								return num_found;
+								return 'Found '+num_found+' occurrences (exceed max)';
 							}
 						}
 					}
@@ -128,12 +132,28 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 						num_found += 1;
 						add_paper(dir);
 						if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
-							return num_found;
+							return '(title) Found '+num_found+' occurrences (exceed max)';
 						}
 					}
 				}
 			}
 		}
 	}
-	return num_found;
+	//
+	status = '';
+	if( show_all ) {
+		status = 'All the papers';
+	} else {
+		if( search_from == 'title' ) {
+			status = '(title) ';
+		}
+		if( num_found == 1 ) {
+			status += 'Found 1 occurrence';
+		} else if( num_found > 1 ) { 
+			status += 'Found '+num_found+' occurrences';
+		} else {
+			status += 'Not found';
+		}
+	}
+	return status;
 }
