@@ -264,6 +264,14 @@
 			//
 			refresh();
 			//
+			const url_string = window.location.href
+			const url = new URL(url_string);
+			const query = url.searchParams.get("query");
+			if( query ) {
+				document.getElementById("keywords-field").value = query.split(',').join(' ');
+				search_helper();
+			}
+			//
 		</script>
 		
 		<!-- Optional JavaScript -->
