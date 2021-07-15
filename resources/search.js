@@ -43,7 +43,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 				}
 			}
 		}
-		return '';
+		return 'All the papers';
 	}
 	//
 	let indices = [];
@@ -140,20 +140,16 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 		}
 	}
 	//
-	status = '';
-	if( show_all ) {
-		status = 'All the papers';
+	let status = '';
+	if( search_from == 'title' ) {
+		status = '(title) ';
+	}
+	if( num_found == 1 ) {
+		status += 'Found 1 occurrence';
+	} else if( num_found > 1 ) { 
+		status += 'Found '+num_found+' occurrences';
 	} else {
-		if( search_from == 'title' ) {
-			status = '(title) ';
-		}
-		if( num_found == 1 ) {
-			status += 'Found 1 occurrence';
-		} else if( num_found > 1 ) { 
-			status += 'Found '+num_found+' occurrences';
-		} else {
-			status += 'Not found';
-		}
+		status += 'Not found';
 	}
 	return status;
 }
