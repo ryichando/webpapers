@@ -52,7 +52,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 			if ( word in word_table ) {
 				indices.push(word_table[word])
 			} else {
-				return 'Not found';
+				return 'Not found (word not in dictionary)';
 			}
 		}
 	}
