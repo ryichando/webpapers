@@ -15,7 +15,6 @@
 		<script src="resources/jquery-3.6.0.min.js"></script>
 
 		<!-- Javascript -->
-		<script src="papers.js"></script>
 		<script src="config.js"></script>
 		<script src="resources/search.js"></script>
 
@@ -60,18 +59,26 @@
 			</div>
 		</div>
 
-		<div id="papers"></div>
+		<div id="papers_body"></div>
 
 		<script>
-			//
 			if( ! server_side_search ) {
 				let data_js = document.createElement("script");
 				data_js.setAttribute("src", "data.js");
 				document.body.appendChild(data_js);
 			}
+			if( ! server_side_search || show_all ) {
+				let papers_js = document.createElement("script");
+				papers_js.setAttribute("src", "papers.js");
+				document.body.appendChild(papers_js);
+			}
+		</script>
+
+		<script>
+			//
 			document.title = page_title
 			document.getElementById('page_title').innerHTML = page_title;
-			g_body = document.getElementById('papers');
+			g_body = document.getElementById('papers_body');
 			//
 			function clear() {
 				g_body.innerHTML = '';
@@ -79,6 +86,23 @@
 			function set_status( message, color ) {
 				$("#status").text(message);
 				document.getElementById("status").className = `badge badge-pill badge-${color}`;
+			}
+			function list_all() {
+				max_year = Math.max.apply(null,Object.keys(papers_yearly));
+				min_year = Math.min.apply(null,Object.keys(papers_yearly));
+				for( let year=max_year; year>=min_year; --year ) {
+					if( year in papers_yearly ) {
+						//
+						// Insert year header
+						add_year(year);
+						//
+						// For each paper
+						dirs = papers_yearly[year];
+						for (const dir of dirs) {
+							add_paper(dir,papers[dir]);
+						}
+					}
+				}
 			}
 			function refresh () {
 				//
@@ -95,20 +119,12 @@
 				document.querySelectorAll('.search-result').forEach(e => e.remove());
 				//
 				if( show_all || enable_search == false ) {
-					max_year = Math.max.apply(null,Object.keys(papers_yearly));
-					min_year = Math.min.apply(null,Object.keys(papers_yearly));
-					for( let year=max_year; year>=min_year; --year ) {
-						if( year in papers_yearly ) {
-							//
-							// Insert year header
-							add_year(year);
-							//
-							// For each paper
-							dirs = papers_yearly[year];
-							for (const dir of dirs) {
-								add_paper(dir);
-							}
-						}
+					if (typeof papers_yearly !== 'undefined') {
+						list_all();
+					} else {
+						window.addEventListener('load', function () {
+							list_all();
+						});
 					}
 				}
 			}
@@ -122,10 +138,9 @@
 				g_body.appendChild(year_header);
 			}
 			//
-			function add_paper( dir ) {
+			function add_paper( dir, paper ) {
 				//
 				// Create paper row
-				let paper = papers[dir];
 				let paper_element = document.createElement('div'); {
 					//
 					paper_element.className = "row";
@@ -229,7 +244,7 @@
 											add_year(action[1]);
 											break;
 										case 'add_paper':
-											add_paper(action[1]);
+											add_paper(action[1],action[2]);
 											break;
 										case 'add_snippet':
 											add_snippet(action[1]);

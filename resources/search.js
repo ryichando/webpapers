@@ -39,7 +39,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 			if( year in papers_yearly ) {
 				add_year(year);
 				for( let dir of papers_yearly[year] ) {
-					add_paper(dir);
+					add_paper(dir,papers[dir]);
 				}
 			}
 		}
@@ -105,7 +105,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							}
 							//
 							if( ! paper_found ) {
-								add_paper(dir);
+								add_paper(dir,papers[dir]);
 								paper_found = true;
 							}
 							num_found += 1;
@@ -130,7 +130,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							year_found = true;
 						}
 						num_found += 1;
-						add_paper(dir);
+						add_paper(dir,papers[dir]);
 						if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
 							return '(title) Found '+num_found+' occurrences (exceed max)';
 						}

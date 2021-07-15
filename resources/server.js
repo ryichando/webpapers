@@ -63,7 +63,7 @@ app.get('/', (req, res) => {
 				result.push(['add_year',year]);
 			};
 			const add_paper = function ( dir ) {
-				result.push(['add_paper',dir]);
+				result.push(['add_paper',dir,papers[dir]]);
 			};
 			const add_snippet = function ( text ) {
 				result.push(['add_snippet',text]);
