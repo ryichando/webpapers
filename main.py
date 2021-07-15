@@ -236,11 +236,14 @@ def process_directory( root, dir ):
 			# Remove if the either the file size is too small or the resolution is too low
 			remove_list = []
 			for img in os.listdir(mkpath(root,dir,'images')):
-				img_path = mkpath(root,dir)+'/images/'+img
-				width,height = Image.open(img_path).size;
-				if width < image_dimension_limit or height < image_dimension_limit:
-					remove_list.append(img_path)
-				elif os.path.getsize(img_path) < image_filesize_limit:
+				img_path = mkpath(root,dir,'images/')+img
+				try:
+					width,height = Image.open(img_path).size;
+					if width < image_dimension_limit or height < image_dimension_limit:
+						remove_list.append(img_path)
+					elif os.path.getsize(img_path) < image_filesize_limit:
+						remove_list.append(img_path)
+				except:
 					remove_list.append(img_path)
 			for img_path in remove_list:
 				os.remove(img_path)
