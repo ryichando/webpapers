@@ -16,15 +16,35 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 	};
 	//
 	let search_from = 'contents';
+	let show_all = false;
 	for (const word of keywords ) {
 		if( word == 'title:' ) {
 			search_from = 'title';
 			keywords.splice(keywords.indexOf('title:'),1);
 			break;
+		} else if( word == 'all:' ) {
+			show_all = true;
+			break;
 		}
 	}
 	if( keywords.length == 0 || keywords[0] == "" ) {
 		return -1;
+	}
+	//
+	num_found = 0;
+	max_year = Math.max.apply(null,Object.keys(papers_yearly));
+	min_year = Math.min.apply(null,Object.keys(papers_yearly));
+	//
+	if( show_all ) {
+		for( let year=max_year; year>=min_year; --year ) {
+			if( year in papers_yearly ) {
+				add_year(year);
+				for( let dir of papers_yearly[year] ) {
+					add_paper(dir);
+				}
+			}
+		}
+		return -3;
 	}
 	//
 	let indices = [];
@@ -38,9 +58,6 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 		}
 	}
 	//
-	num_found = 0;
-	max_year = Math.max.apply(null,Object.keys(papers_yearly));
-	min_year = Math.min.apply(null,Object.keys(papers_yearly));
 	for( let year=max_year; year>=min_year; --year ) {
 		if( year in papers_yearly ) {
 			year_found = false;
