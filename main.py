@@ -454,6 +454,7 @@ const papers_yearly = {1};
 	config_js += f'const page_title = "{page_title}";\n'
 	config_js += f'const server_side_search = {"true" if server_side_search else "false"};\n'
 	config_js += f'const server_url = "{server_url}";\n'
+	config_js += f'const enable_search = {"true" if enable_search else "false"};\n'
 	#
 	with open(root+'/config.js','w') as file:
 		file.write(config_js)

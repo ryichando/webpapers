@@ -4,6 +4,24 @@ const express = require('express')
 const moment = require('moment')
 const app = express()
 //
+// installs:
+// npm install express moment winston winston-daily-rotate-file
+//
+// https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
+let winston = require('winston');
+require('winston-daily-rotate-file');
+let transport = new (winston.transports.DailyRotateFile)({
+	filename: './log/log',
+	datePattern: 'yyyy-MM-dd',
+	prepend: true,
+	level: 'info'
+});
+let logger = new (winston.createLogger)({
+	transports: [
+	  transport
+	]
+});
+//
 // https://stackoverflow.com/questions/4481058/load-and-execute-external-js-file-in-node-js-with-access-to-local-variables
 function import_js( path ) {
 	console.log(`Loading ${path}`)
@@ -18,18 +36,23 @@ import_js('./resources/search.js');
 //
 app.get('/', (req, res) => {
 	res.header('Access-Control-Allow-Origin','*')
+	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
+	const timestamps = moment().format('MMMM Do YYYY, h:mm:ss a')
 	if( ! req.query.token ) {
 		res.status(500)
 		res.send('Token not defined');
+		logger.info( `<${timestamps}> ip: ${ip} token undefined`);
 	} else if( req.query.token != token ) {
 		res.status(500)
 		res.send('Wrong token');
+		logger.info( `<${timestamps}> ip: ${ip} wrong token`);
 	} else {
-		if( req.query.array ) {
+		if( req.query.ping ) {
+			res.send('Server is ready');
+			logger.info( `<${timestamps}> ip: ${ip} ping`);
+		} else if( req.query.array ) {
 			const keywords = req.query.array.split(',');
-			const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
-			const timestamps = moment().format('MMMM Do YYYY, h:mm:ss a')
-			console.log( `<${timestamps}> ip: ${ip} keywords: ${keywords}`);
+			logger.info( `<${timestamps}> ip: ${ip} keywords: ${keywords}`);
 			result = [];
 			const add_year = function ( year ) {
 				result.push(['add_year',year]);
@@ -49,5 +72,5 @@ app.get('/', (req, res) => {
 })
 //
 app.listen(server_port, () => {
-	console.log(`Example app listening at http://localhost:${server_port}`)
+	logger.info(`server listening at ${server_url}`)
 })
