@@ -70,8 +70,6 @@ def clean( lines, dictionary ):
 #
 def process_directory( root, dir ):
 	#
-	print(f'Processing {dir}...')
-	#
 	# Information list
 	bib = None
 	doi = None
@@ -90,6 +88,11 @@ def process_directory( root, dir ):
 			if file.endswith('.pdf'):
 				pdf = file
 				break
+	#
+	if not os.path.exists(mkpath(root,dir,pdf)):
+		return None
+	#
+	print(f'Processing {dir}...')
 	info = pikepdf.open(mkpath(root,dir,pdf))
 	#
 	for file in os.listdir(mkpath(root,dir)):
@@ -314,15 +317,15 @@ if __name__ == '__main__':
 			if dir in ['__pycache__',resource_dir]:
 				print( f'Deleting {root}/{dir}...' )
 				shutil.rmtree(root+'/'+dir)
-			elif dir in ['bibtex.bib','index.html','data.js','papers.js']:
+			elif dir in ['index.html','data.js','papers.js']:
 				file = root+'/'+dir
 				print( f'Deleting {file}...')
 				os.remove(file)
-			elif os.path.isdir(root+'/'+dir):
-				for subdir in os.listdir(root+'/'+dir):
-					if subdir in ['thumbnails','images','converted','analysis']:
-						print(f'Deleting {root}/{dir}/{subdir}...')
-						shutil.rmtree(root+'/'+dir+'/'+subdir)
+		for current_dir, dirs, files in os.walk(root):
+			for dir in dirs:
+				if dir in ['thumbnails','images','converted','analysis']:
+					print(f'Deleting {current_dir}/{dir}...')
+					shutil.rmtree(current_dir+'/'+dir)
 		sys.exit(0)
 	#
 	# List all the file types supported
@@ -331,15 +334,19 @@ if __name__ == '__main__':
 	# Probe all the directories
 	database = {}
 	database_yearly = {}
-	for dir in os.listdir(root):
-		if os.path.isdir(mkpath(root,dir)) and not dir in ['__pycache__',resource_dir]:
-			e = process_directory(root,dir)
-			year = e['year']
-			if year in database_yearly.keys():
-				database_yearly[year].append(dir)
-			else:
-				database_yearly[year] = [dir]
-			database[dir] = e
+	for current_dir, dirs, files in os.walk(root):
+		for dir in dirs:
+			if not dir in ['__pycache__',resource_dir,'images','converted','thumbnails']:
+				path = current_dir+'/'+dir
+				dir = '/'.join(path.split('/')[1:])
+				e = process_directory(path.split('/')[0],dir)
+				if e:
+					year = e['year']
+					if year in database_yearly.keys():
+						database_yearly[year].append(dir)
+					else:
+						database_yearly[year] = [dir]
+					database[dir] = e
 	#
 	# If no valid directory is found exit the program
 	if not len(database):
@@ -432,16 +439,6 @@ const papers_yearly = {1};
 	#
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
-	#
-	# Generate BibTeX
-	entries = {}
-	for dir,paper in database.items():
-		bib = paper['bib']
-		if bib:
-			bib_data = parse_file(mkpath(root,dir,bib))
-			entries[dir] = bib_data.entries[list(bib_data.entries)[0]]
-	with open(root+'/bibtex.bib','w') as file:
-			BibliographyData(entries).to_file(file)
 	#
 	# Copy resources
 	run_command('cp -rf {} {}'.format(resource_dir,root))
