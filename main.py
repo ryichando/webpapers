@@ -93,7 +93,11 @@ def process_directory( root, dir ):
 		return None
 	#
 	print(f'Processing {dir}...')
-	info = pikepdf.open(mkpath(root,dir,pdf))
+	try:
+		info = pikepdf.open(mkpath(root,dir,pdf))
+	except:
+		print( f'WARNING: opening {dir} failed.' )
+		return None
 	#
 	for file in os.listdir(mkpath(root,dir)):
 		#
