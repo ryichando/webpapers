@@ -304,6 +304,7 @@ if __name__ == '__main__':
 	server_url = config['DEFAULT']['server_url'].replace('{server_port}',str(server_port))
 	num_max_search_hit = int(config['DEFAULT']['num_max_search_hit'])
 	show_all = config['DEFAULT']['show_all'] == 'yes'
+	word_window_size = int(config['DEFAULT']['word_window_size'])
 	resource_dir = 'resources'
 	#
 	# If the "clean" flag is specified, clean them all
@@ -427,6 +428,8 @@ const papers_yearly = {1};
 	papers_js += f'const server_port = {server_port};\n'
 	papers_js += f'const num_max_search_hit = {num_max_search_hit};\n'
 	papers_js += f'const show_all = {"true" if show_all else "false"};\n'
+	papers_js += f'const word_window_size = {word_window_size};\n'
+	#
 	with open(root+'/papers.js','w') as file:
 		file.write(papers_js)
 	#

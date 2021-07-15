@@ -65,6 +65,7 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							min = Math.min(min,pos)
 							max = Math.max(max,pos)
 							if( min < 0 ) break;
+							if( max - min > word_window_size ) break;
 							highlights.push(pos);
 						}
 						if( min >= 0 ) {
