@@ -57,7 +57,7 @@
 			<div class="col text-center">
 				<div id="status"></div>
 				<div class="badge badge-pill badge-light border border-primary" id="link-badge">
-					<a href="#" id="link">Copy Link</a>
+					<a href="#" target="_blank" id="link">Link</a>
 				</div>
 			</div>
 		</div>
@@ -240,6 +240,7 @@
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
 				if( keywords && keywords != "" ) {
 					document.getElementById("link-badge").hidden = false;
+					document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${keywords.join()}`;
 					if( server_side_search ) {
 						$.get(`${server_url}?token=${token}&array=${keywords.join()}`).done(function(data,status){
 							if( status == 'success') {
@@ -292,19 +293,6 @@
 					search_helper();
 				}
 			});
-			$("#link").on('click', function (e) {
-				const keywords = $("#keywords-field").val().trim().split(/-| /);
-				const url = window.location.href.split('?')[0]+`?query=${keywords.join()}`;
-				document.getElementById("link-badge").hidden = false;
-				copyTextToClipboard(url,function() {
-					$("#link").text('Copied!');
-					setTimeout(function() {
-						$("#link").text('Copy Link');
-					},1000);
-				},function() {
-					alert('Could not copy text.');
-				});
-			});
 			//
 			refresh();
 			//
@@ -317,47 +305,6 @@
 					search_helper();
 				}
 			});
-			//
-			// https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
-			function fallbackCopyTextToClipboard(text) {
-			  var textArea = document.createElement("textarea");
-			  textArea.value = text;
-			  
-			  // Avoid scrolling to bottom
-			  textArea.style.top = "0";
-			  textArea.style.left = "0";
-			  textArea.style.position = "fixed";
-
-			  document.body.appendChild(textArea);
-			  textArea.focus();
-			  textArea.select();
-
-			  var successful = false;
-			  try {
-			    var successful = document.execCommand('copy');
-			    var msg = successful ? 'successful' : 'unsuccessful';
-			    successful = true;
-			  } catch (err) {
-			    successful = false;
-			  }
-
-			  document.body.removeChild(textArea);
-			  return successful;
-			}
-			function copyTextToClipboard(text,success_func,fail_func) {
-			  if (!navigator.clipboard) {
-			    if( fallbackCopyTextToClipboard(text) ) {
-			    	success_func();
-			    } else {
-			    	fail_func();
-			    }
-			  }
-			  navigator.clipboard.writeText(text).then(function() {
-			    success_func();
-			  }, function(err) {
-			    fail_func();
-			  });
-			}
 		</script>
 		
 		<!-- Optional JavaScript -->
