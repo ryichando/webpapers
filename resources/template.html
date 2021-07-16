@@ -294,14 +294,14 @@
 				}
 			});
 			//
-			refresh();
-			//
 			window.addEventListener('load', function () {
 				const url = new URL(window.location.href);
 				const query = url.searchParams.get("query");
 				if( query ) {
 					document.getElementById("keywords-field").value = query.split(',').join(' ');
 					search_helper();
+				} else {
+					refresh();
 				}
 			});
 		</script>
