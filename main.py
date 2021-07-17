@@ -184,7 +184,7 @@ def process_directory( root, dir ):
 		#
 		# List files and videos
 		if not file.startswith('.'):
-			if not file in ['thumbnails',pdf,'images','converted','analysis'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
+			if not file in ['thumbnails',pdf,'images','converted','analysis','info.json'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
 				files.append(file)
 			if os.path.splitext(file)[1] in video_types:
 				if os.path.exists(mkpath(root,dir)+f'/converted/{file}.mp4'):
