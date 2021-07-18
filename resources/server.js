@@ -68,18 +68,21 @@ app.get('/', async (req, res) => {
 				res.write(JSON.stringify(['add_paper',dir,papers[dir]])+'\n');
 			};
 			const add_snippet = async function ( text, num_found ) {
-				res.write(JSON.stringify(['add_snippet',text,num_found])+'\n');
-				await sleep(1);
+				if( ! res.write(JSON.stringify(['add_snippet',text,num_found])+'\n')) {
+					await sleep(1);
+				}
 			};
 			result = await search ( keywords, add_year, add_paper, add_snippet )
-			res.write(JSON.stringify(['done',result]));
+			if( ! res.write(JSON.stringify(['done',result]))) {
+				await sleep(1);
+			}
 			res.end();
 		} else {
 			res.send('Array not defined');
 		}
 	}
-})
+});
 //
 app.listen(server_port, () => {
 	print(`server listening at ${server_url}`)
-})
+});
