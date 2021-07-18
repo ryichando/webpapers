@@ -219,7 +219,7 @@
 				} g_body.appendChild(paper_element);
 			}
 			//
-			function add_snippet( text ) {
+			function add_snippet( text, num_found ) {
 				//
 				let text_row = document.createElement('div');
 				text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
@@ -228,6 +228,7 @@
 				text_content.innerHTML = text;
 				text_row.appendChild(text_content);
 				g_body.appendChild(text_row);
+				set_status(`Found ${num_found} occurences...`,'info');
 			}
 			//
 			function search_helper() {
@@ -252,6 +253,7 @@
 								return reader.read().then(function ({value, done}) {
 									let newData = decoder.decode(value, {stream: !done});
 									if( response.status == 200 ) {
+										console.log(newData.length);
 										for( const obj of newData.split('\n') ) {
 											if( obj ) {
 												const action = JSON.parse(obj);
@@ -263,7 +265,7 @@
 														add_paper(action[1],action[2]);
 														break;
 													case 'add_snippet':
-														add_snippet(action[1]);
+														add_snippet(action[1],action[2]);
 														break;
 													case 'done':
 														message = action[1];
