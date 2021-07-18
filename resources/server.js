@@ -56,6 +56,7 @@ app.get('/', (req, res) => {
 			res.send('Server is ready');
 			print( `ip: ${ip} ping`);
 		} else if( req.query.array ) {
+			let count = 0;
 			const keywords = req.query.array.split(',');
 			print( `ip: ${ip} keywords: ${keywords}`);
 			const add_year = function ( year ) {
@@ -66,7 +67,7 @@ app.get('/', (req, res) => {
 			};
 			const add_snippet = function ( text ) {
 				res.write(JSON.stringify(['add_snippet',text])+'\n');
-				console.log('Adding add_snippet...');
+				console.log(`Adding add_snippet... (${++count})`);
 			};
 			result = search ( keywords, add_year, add_paper, add_snippet )
 			res.write(JSON.stringify(['done',result]));
