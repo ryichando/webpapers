@@ -2,9 +2,7 @@ const vm = require('vm');
 const fs = require('fs');
 const express = require('express')
 const moment = require('moment')
-const compression = require('compression')
 const app = express()
-app.use(compression())
 //
 // installs:
 // npm install express moment winston winston-daily-rotate-file
@@ -68,7 +66,7 @@ app.get('/', (req, res) => {
 			};
 			const add_snippet = function ( text ) {
 				res.write(JSON.stringify(['add_snippet',text])+'\n');
-				res.flush();
+				console.log('Adding add_snippet...');
 			};
 			result = search ( keywords, add_year, add_paper, add_snippet )
 			res.write(JSON.stringify(['done',result]));
