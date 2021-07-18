@@ -40,7 +40,7 @@ import_js('./data.js');
 import_js('./config.js')
 import_js('./resources/search.js');
 //
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
 	res.header('Access-Control-Allow-Origin','*')
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
 	if( ! req.query.token ) {
@@ -58,16 +58,16 @@ app.get('/', (req, res) => {
 		} else if( req.query.array ) {
 			const keywords = req.query.array.split(',');
 			print( `ip: ${ip} keywords: ${keywords}`);
-			const add_year = function ( year ) {
+			const add_year = async function ( year ) {
 				res.write(JSON.stringify(['add_year',year])+'\n');
 			};
-			const add_paper = function ( dir ) {
+			const add_paper = async function ( dir ) {
 				res.write(JSON.stringify(['add_paper',dir,papers[dir]])+'\n');
 			};
-			const add_snippet = function ( text ) {
+			const add_snippet = async function ( text ) {
 				res.write(JSON.stringify(['add_snippet',text])+'\n');
 			};
-			result = search ( keywords, add_year, add_paper, add_snippet )
+			result = await search ( keywords, add_year, add_paper, add_snippet )
 			res.write(JSON.stringify(['done',result]));
 			res.end();
 		} else {

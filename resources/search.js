@@ -1,4 +1,4 @@
-function search ( keywords, add_year, add_paper, add_snippet ) {
+async function search ( keywords, add_year, add_paper, add_snippet ) {
 	//
 	const html_escape = function (str) {
 		if (!str) return;
@@ -105,16 +105,16 @@ function search ( keywords, add_year, add_paper, add_snippet ) {
 							if( max < words.length ) text += '...';
 							//
 							if( ! year_found ) {
-								add_year(year);
+								await add_year(year);
 								year_found = true;
 							}
 							//
 							if( ! paper_found ) {
-								add_paper(dir,papers[dir]);
+								await add_paper(dir,papers[dir]);
 								paper_found = true;
 							}
 							num_found += 1;
-							add_snippet(text);
+							await add_snippet(text);
 							if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
 								return 'Found '+num_found+' occurrences (exceed max)';
 							}
