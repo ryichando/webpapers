@@ -58,18 +58,18 @@ app.get('/', (req, res) => {
 		} else if( req.query.array ) {
 			const keywords = req.query.array.split(',');
 			print( `ip: ${ip} keywords: ${keywords}`);
-			result = [];
 			const add_year = function ( year ) {
-				result.push(['add_year',year]);
+				res.write(JSON.stringify(['add_year',year])+'\n');
 			};
 			const add_paper = function ( dir ) {
-				result.push(['add_paper',dir,papers[dir]]);
+				res.write(JSON.stringify(['add_paper',dir,papers[dir]])+'\n');
 			};
 			const add_snippet = function ( text ) {
-				result.push(['add_snippet',text]);
+				res.write(JSON.stringify(['add_snippet',text])+'\n');
 			};
-			result.push(['done',search ( keywords, add_year, add_paper, add_snippet )]);
-			res.json(result);
+			result = search ( keywords, add_year, add_paper, add_snippet )
+			res.write(JSON.stringify(['done',result]));
+			res.end();
 		} else {
 			res.send('Array not defined');
 		}
