@@ -2,7 +2,9 @@ const vm = require('vm');
 const fs = require('fs');
 const express = require('express')
 const moment = require('moment')
+const compression = require('compression')
 const app = express()
+app.use(compression())
 //
 // installs:
 // npm install express moment winston winston-daily-rotate-file
