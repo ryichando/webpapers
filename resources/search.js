@@ -1,4 +1,4 @@
-async function search ( keywords, add_year, add_paper, add_snippet ) {
+function search ( keywords, add_year, add_paper, add_snippet ) {
 	//
 	const html_escape = function (str) {
 		if (!str) return;
@@ -105,16 +105,16 @@ async function search ( keywords, add_year, add_paper, add_snippet ) {
 							if( max < words.length ) text += '...';
 							//
 							if( ! year_found ) {
-								await add_year(year);
+								add_year(year);
 								year_found = true;
 							}
 							//
 							if( ! paper_found ) {
-								await add_paper(dir,papers[dir]);
+								add_paper(dir,papers[dir]);
 								paper_found = true;
 							}
 							num_found += 1;
-							await add_snippet(text);
+							add_snippet(text);
 							if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
 								return 'Found '+num_found+' occurrences (exceed max)';
 							}
