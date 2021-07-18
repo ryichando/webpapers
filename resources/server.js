@@ -61,20 +61,24 @@ app.get('/', async (req, res) => {
 		} else if( req.query.array ) {
 			const keywords = req.query.array.split(',');
 			print( `ip: ${ip} keywords: ${keywords}`);
-			const add_year = async function ( year ) {
-				res.write(JSON.stringify(['add_year',year])+'\n');
-			};
-			const add_paper = async function ( dir ) {
-				res.write(JSON.stringify(['add_paper',dir,papers[dir]])+'\n');
-			};
-			const add_snippet = async function ( text, num_found ) {
-				if( ! res.write(JSON.stringify(['add_snippet',text,num_found])+'\n')) {
-					await sleep(1);
+			const add_year = async function ( year, _res ) {
+				if( ! _res.write(JSON.stringify(['add_year',year])+'\n')) {
+					while( ! _res.write('\n') ) { await sleep(1); }
 				}
 			};
-			result = await search ( keywords, add_year, add_paper, add_snippet )
+			const add_paper = async function ( dir, paper, _res ) {
+				if( ! _res.write(JSON.stringify(['add_paper',dir,paper])+'\n')) {
+					while( ! _res.write('\n') ) { await sleep(1); }
+				}
+			};
+			const add_snippet = async function ( text, num_found, _res ) {
+				if( ! _res.write(JSON.stringify(['add_snippet',text,num_found])+'\n')) {
+					while( ! _res.write('\n') ) { await sleep(1); }
+				}
+			};
+			result = await search ( keywords, add_year, add_paper, add_snippet, res );
 			if( ! res.write(JSON.stringify(['done',result]))) {
-				await sleep(1);
+				while( ! res.write('\n') ) { await sleep(1); }
 			}
 			res.end();
 		} else {

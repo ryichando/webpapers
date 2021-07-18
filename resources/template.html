@@ -133,7 +133,7 @@
 				}
 			}
 			//
-			function add_year( year ) {
+			function add_year( year, param ) {
 				let year_header = document.createElement('div');
 				year_header.className = "row pl-4"
 				year_header.style = "background-color: LightGray;";
@@ -142,7 +142,7 @@
 				g_body.appendChild(year_header);
 			}
 			//
-			function add_paper( dir, paper ) {
+			function add_paper( dir, paper, param ) {
 				//
 				// Create paper row
 				let paper_element = document.createElement('div'); {
@@ -219,7 +219,7 @@
 				} g_body.appendChild(paper_element);
 			}
 			//
-			function add_snippet( text, num_found ) {
+			function add_snippet( text, num_found, param ) {
 				//
 				let text_row = document.createElement('div');
 				text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
@@ -231,76 +231,77 @@
 				set_status(`Processing... (Found ${num_found} occurrences)`,'info');
 			}
 			//
-			function search_helper() {
+			async function search_helper() {
 				//
 				clear();
-				//
-				document.getElementById("status").hidden = false;
-				set_status('Processing...','info');
-				//
-				let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
-				if( keywords && keywords != "" ) {
-					document.getElementById("link-badge").hidden = false;
-					document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${keywords.join()}`;
-					if( server_side_search ) {
-						const url = `${server_url}?token=${token}&array=${keywords.join()}`;
-						// https://stackoverflow.com/questions/6789703/how-to-write-javascript-in-client-side-to-receive-and-parse-chunked-response-i
-						fetch(url).then(function (response) {
-							let reader = response.body.getReader();
-							let decoder = new TextDecoder();
-							return readData(response);
-							function readData(response) {
-								return reader.read().then(function ({value, done}) {
-									let newData = decoder.decode(value, {stream: !done});
-									if( response.status == 200 ) {
-										console.log(newData.length);
-										for( const obj of newData.split('\n') ) {
-											if( obj ) {
-												const action = JSON.parse(obj);
-												switch( action[0] ) {
-													case 'add_year':
-														add_year(action[1]);
-														break;
-													case 'add_paper':
-														add_paper(action[1],action[2]);
-														break;
-													case 'add_snippet':
-														add_snippet(action[1],action[2]);
-														break;
-													case 'done':
-														message = action[1];
-														if( message == '' ) {
-															document.getElementById("status").hidden = true;
-															refresh();
-														} else {
-															set_status(message,'info');
-														}
-														break;
-													default:
-														console.log('Unknown action: '+action);
-														console.log(`keywords = "${keywords}"` );
+				setTimeout( async function() {
+					//
+					document.getElementById("status").hidden = false;
+					set_status('Processing...','info');
+					//
+					let keywords = $("#keywords-field").val().trim().toLowerCase().split(/-| /);
+					if( keywords && keywords != "" ) {
+						document.getElementById("link-badge").hidden = false;
+						document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${keywords.join()}`;
+						if( server_side_search ) {
+							const url = `${server_url}?token=${token}&array=${keywords.join()}`;
+							// https://stackoverflow.com/questions/6789703/how-to-write-javascript-in-client-side-to-receive-and-parse-chunked-response-i
+							fetch(url).then(function (response) {
+								let reader = response.body.getReader();
+								let decoder = new TextDecoder();
+								return readData(response);
+								function readData(response) {
+									return reader.read().then(function ({value, done}) {
+										let newData = decoder.decode(value, {stream: !done});
+										if( response.status == 200 ) {
+											for( const obj of newData.split('\n') ) {
+												if( obj ) {
+													const action = JSON.parse(obj);
+													switch( action[0] ) {
+														case 'add_year':
+															add_year(action[1]);
+															break;
+														case 'add_paper':
+															add_paper(action[1],action[2]);
+															break;
+														case 'add_snippet':
+															add_snippet(action[1],action[2]);
+															break;
+														case 'done':
+															message = action[1];
+															if( message == '' ) {
+																document.getElementById("status").hidden = true;
+																refresh();
+															} else {
+																set_status(message,'info');
+															}
+															break;
+														default:
+															console.log('Unknown action: '+action);
+															console.log(`keywords = "${keywords}"` );
+													}
 												}
 											}
+										} else {
+											set_status(`${response.statusText}: ${newData}`,'danger');
+											return;
 										}
-									} else {
-										set_status(`${response.statusText}: ${newData}`,'danger');
-										return;
-									}
-									if (done) {
-										return;
-									}
-									return readData(response);
-								});
-							}
-						}).catch((err)=> {
-							set_status(`${err}`,'danger');
-						});
+										if (done) {
+											return;
+										}
+										return readData(response);
+									});
+								}
+							}).catch((err)=> {
+								set_status(`${err}`,'danger');
+							});
+						} else {
+							set_status(await search(keywords,add_year,add_paper,add_snippet),'info');
+						}
 					} else {
-						set_status(search(keywords,add_year,add_paper,add_snippet),'info');
+						refresh();
 					}
-				} else {
-					refresh();
-				}
+				},10);
 			}
 			//
 			$("#search-button").on('click', function (e) {
