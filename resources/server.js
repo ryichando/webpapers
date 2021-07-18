@@ -4,9 +4,6 @@ const express = require('express')
 const moment = require('moment')
 const app = express()
 //
-// https://stackoverflow.com/questions/14249506/how-can-i-wait-in-node-js-javascript-l-need-to-pause-for-a-period-of-time
-const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
-//
 // installs:
 // npm install express moment winston winston-daily-rotate-file
 //
@@ -43,7 +40,7 @@ import_js('./data.js');
 import_js('./config.js')
 import_js('./resources/search.js');
 //
-app.get('/', async (req, res) => {
+app.get('/', (req, res) => {
 	res.header('Access-Control-Allow-Origin','*');
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
 	if( ! req.query.token ) {
@@ -61,25 +58,17 @@ app.get('/', async (req, res) => {
 		} else if( req.query.array ) {
 			const keywords = req.query.array.split(',');
 			print( `ip: ${ip} keywords: ${keywords}`);
-			const add_year = async function ( year, _res ) {
-				if( ! _res.write(JSON.stringify(['add_year',year])+'\n')) {
-					while( ! _res.write('\n') ) { await sleep(1); }
-				}
+			const add_year = function ( year, _res ) {
+				_res.write(JSON.stringify(['add_year',year])+'\n');
 			};
-			const add_paper = async function ( dir, paper, _res ) {
-				if( ! _res.write(JSON.stringify(['add_paper',dir,paper])+'\n')) {
-					while( ! _res.write('\n') ) { await sleep(1); }
-				}
+			const add_paper = function ( dir, paper, _res ) {
+				_res.write(JSON.stringify(['add_paper',dir,paper])+'\n');
 			};
-			const add_snippet = async function ( text, num_found, _res ) {
-				if( ! _res.write(JSON.stringify(['add_snippet',text,num_found])+'\n')) {
-					while( ! _res.write('\n') ) { await sleep(1); }
-				}
+			const add_snippet = function ( text, num_found, _res ) {
+				_res.write(JSON.stringify(['add_snippet',text,num_found])+'\n');
 			};
-			result = await search ( keywords, add_year, add_paper, add_snippet, res );
-			if( ! res.write(JSON.stringify(['done',result]))) {
-				while( ! res.write('\n') ) { await sleep(1); }
-			}
+			result = search ( keywords, add_year, add_paper, add_snippet, res );
+			res.write(JSON.stringify(['done',result]));
 			res.end();
 		} else {
 			res.send('Array not defined');
