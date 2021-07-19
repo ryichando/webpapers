@@ -441,7 +441,7 @@ if __name__ == '__main__':
 				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices])
 			)
 			# Write raw words
-			words = ','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
+			words = ','.join([ "'"+base64.b64encode(line.encode('ascii','ignore')).decode()+"'" for line in lines ])
 			additional_words_data = f"data['{dir}']['words'] = [{words}];"
 			with open(os.path.join(root,dir,'words.js'),'w') as file:
 				file.write(additional_words_data)
