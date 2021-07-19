@@ -65,16 +65,16 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				paper_idx = data_map[dir];
 				paper_found = false;
 				if( search_from == 'contents' ) {
-					for( let i=0; i<data[paper_idx].length; ++i ) {
-						let min = data[paper_idx][i].length;
+					for( let i=0; i<data_0[paper_idx].length; ++i ) {
+						let min = data_0[paper_idx][i].length;
 						let max = 0;
 						const margin_window = 10;
 						let highlights = [];
 						for( const idx of indices ) {
 							let pos = -1;
-							for( let j=0; j<data[paper_idx][i].length; ++j ) {
-								if( data[paper_idx][i][j][0] == idx ) {
-									pos = data[paper_idx][i][j][1];
+							for( let j=0; j<data_0[paper_idx][i].length; ++j ) {
+								if( data_0[paper_idx][i][j] == idx ) {
+									pos = data_1[paper_idx][i][j];
 									break;
 								}
 							}
