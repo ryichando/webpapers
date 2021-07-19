@@ -40,6 +40,7 @@ def remove_special_chars( text ):
 		'\\' : '',
 		'/' : '',
 		'.' : '',
+		',' : '',
 		'"' : '',
 		'\'' : '',
 		'&' : '',
@@ -295,6 +296,9 @@ def process_directory( root, dir ):
 		'image_page' : image_path
 	}
 #
+def asciify( str ):
+	return str.encode("ascii","ignore").decode()
+#
 if __name__ == '__main__':
 	#
 	# Parse arguments
@@ -394,28 +398,34 @@ if __name__ == '__main__':
 		registered_words = {}
 		stemmer = nltk.PorterStemmer()
 		#
+		# Extend word dictionary
+		for dir,paper in database.items():
+			if paper['abstract']:
+				print( 'Extending word dict from {} abstract...'.format(dir) )
+				abstract_lines = paper['abstract'].split('\n')
+				for abstract_line in abstract_lines:
+					for _word in asciify(abstract_line).split(' '):
+						for word in remove_special_chars(_word).split('-'):
+							w = word.lower()
+							if w not in word_dictionary:
+								word_dictionary.add(w)
+		#
 		for dir,paper in database.items():
 			#
 			year = paper['year']
 			pdf = paper['pdf']
 			print( 'Analyzing {}...'.format(dir))
 			lines = pdfdump.dump(mkpath(root,dir,pdf))
-			trust_flags = [ False for _ in range(0,len(lines)) ]
-			#
-			if paper['abstract']:
-				abstract_lines = paper['abstract'].split('\n')
-				lines.extend(abstract_lines)
-				trust_flags.extend([ True for _ in range(0,len(abstract_lines))])
 			#
 			indices = []
 			#
-			for line,flag in zip(lines,trust_flags):
+			for line in lines:
 				line_indices = []
 				head_pos = 0
 				for _word in line.split(' '):
 					for word in remove_special_chars(_word).split('-'):
 						normalized_word = None
-						if flag or word.lower() in word_dictionary:
+						if word.lower() in word_dictionary:
 							normalized_word = stemmer.stem(word.lower())
 							key = word.lower()
 						elif word.isupper() and word.isalpha():
