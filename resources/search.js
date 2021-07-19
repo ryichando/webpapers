@@ -1,4 +1,7 @@
-function search ( keywords, add_year, add_paper, add_snippet, param=null ) {
+function sleep (time) {
+	return new Promise((resolve) => setTimeout(resolve, time));
+}
+function search ( keywords, add_year, add_paper, add_snippet, param=null, import_js=null ) {
 	//
 	const html_escape = function (str) {
 		if (!str) return;
@@ -90,19 +93,6 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null ) {
 							highlights.push(pos);
 						}
 						if( min >= 0 ) {
-							let words;
-							if (typeof window === 'undefined') {
-								words = html_escape(Buffer.from(value.words[i],'base64').toString()).split(' ');
-							} else {
-								words = html_escape(window.atob(value.words[i]).toString()).split(' ');
-							}
-							for( const pos of highlights ) {
-								words[pos] = '<em>'+words[pos]+'</em>';
-							}
-							min = Math.max(0,min-margin_window);
-							max = Math.min(words.length,max+margin_window);
-							text = words.slice(min,max).join(' ');
-							if( max < words.length ) text += '...';
 							//
 							if( ! year_found ) {
 								add_year(year,param);
@@ -113,12 +103,67 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null ) {
 								add_paper(dir,papers[dir],param);
 								paper_found = true;
 							}
+							//
+							const get_text = function ( params ) {
+								const i = params['idx'];
+								const dir = params['dir'];
+								let min = params['min'];
+								let max = params['max'];
+								let words;
+								if (typeof window === 'undefined') {
+									words = html_escape(Buffer.from(data[dir].words[i],'base64').toString()).split(' ');
+								} else {
+									words = html_escape(window.atob(data[dir].words[i]).toString()).split(' ');
+								}
+								for( const pos of highlights ) {
+									words[pos] = '<em>'+words[pos]+'</em>';
+								}
+								min = Math.max(0,min-margin_window);
+								max = Math.min(words.length,max+margin_window);
+								text = words.slice(min,max).join(' ');
+								if( max < words.length ) text += '...';
+								return text;
+							};
+							//
+							const snippet_id = `snippet-${num_found}`;
 							num_found += 1;
-							add_snippet(text,num_found,param);
+							//
+							let not_added_snippet = true;
+							if( data[dir].words == undefined ) {
+								const path = dir+"/words.js";
+								let js = import_js(path);
+								if( js ) {
+									add_snippet('Loading...',num_found,param,snippet_id);
+									js.params = {
+										'id' : snippet_id,
+										'dir' : dir,
+										'idx' : i,
+										'min' : min,
+										'max' : max,
+									};
+									js.onload = function() {
+										document.getElementById(this.params['id']).innerHTML = get_text(this.params);
+									};
+									not_added_snippet = false;
+								}
+							}
+							if ( not_added_snippet ) {
+								add_snippet(get_text({
+									'id' : snippet_id,
+									'dir' : dir,
+									'idx' : i,
+									'min' : min,
+									'max' : max,
+								}),num_found,param,snippet_id);
+							}
+							//
 							if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
 								return 'Found '+num_found+' occurrences (exceed max)';
 							}
 						}
+					}
+					if( data[dir].words != undefined ) {
+						delete data[dir].words;
 					}
 				} else if ( search_from == 'title' ) {
 					let found_all = true;

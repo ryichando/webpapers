@@ -184,7 +184,7 @@ def process_directory( root, dir ):
 		#
 		# List files and videos
 		if not file.startswith('.'):
-			if not file in ['thumbnails',pdf,'images','converted','analysis','info.json'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
+			if not file in ['thumbnails',pdf,'images','converted','analysis','info.json','words.js'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
 				files.append(file)
 			if os.path.splitext(file)[1] in video_types:
 				if os.path.exists(mkpath(root,dir)+f'/converted/{file}.mp4'):
@@ -423,12 +423,16 @@ if __name__ == '__main__':
 					head_pos += 1
 				indices.append(line_indices)
 			#
-			data_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}], 'words' : [{}] }};\n".format(
+			data_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}] }};\n".format(
 				dir,
 				year,
-				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices]),
-				','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
+				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices])
 			)
+			# Write raw words
+			words = ','.join([ "'"+base64.b64encode(line.encode('ascii')).decode("ascii")+"'" for line in lines ])
+			additional_words_data = f"data['{dir}']['words'] = [{words}];"
+			with open(os.path.join(root,dir,'words.js'),'w') as file:
+				file.write(additional_words_data)
 		#
 		# Write word table
 		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))

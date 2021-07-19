@@ -62,18 +62,21 @@
 			</div>
 		</div>
 
+		<div id="new_scripts"></div>
 		<div id="papers_body"></div>
 
 		<script>
+			function import_js ( path ) {
+				let js = document.createElement("script");
+				js.setAttribute("src", path);
+				document.getElementById('new_scripts').appendChild(js)
+				return js;
+			}
 			if( ! server_side_search ) {
-				let data_js = document.createElement("script");
-				data_js.setAttribute("src", "data.js");
-				document.body.appendChild(data_js);
+				import_js('data.js');
 			}
 			if( ! server_side_search || show_all ) {
-				let papers_js = document.createElement("script");
-				papers_js.setAttribute("src", "papers.js");
-				document.body.appendChild(papers_js);
+				import_js('papers.js');
 			}
 		</script>
 
@@ -219,11 +222,14 @@
 				} g_body.appendChild(paper_element);
 			}
 			//
-			function add_snippet( text, num_found, param ) {
+			function add_snippet( text, num_found, param, id=null ) {
 				//
 				let text_row = document.createElement('div');
 				text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
 				let text_content = document.createElement('div');
+				if( id ) {
+					text_content.id = id;
+				}
 				text_content.className = 'col';
 				text_content.innerHTML = text;
 				text_row.appendChild(text_content);
@@ -302,7 +308,7 @@
 							set_status(`${err}`,'danger');
 						});
 					} else {
-						set_status(search(keywords,add_year,add_paper,add_snippet),'info');
+						set_status(search(keywords,add_year,add_paper,add_snippet,null,import_js),'info');
 					}
 				} else {
 					refresh();

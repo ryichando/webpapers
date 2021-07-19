@@ -26,6 +26,7 @@ function import_js( path ) {
 	console.log(`Loading ${path}`)
 	const script = new vm.Script(fs.readFileSync(path));
 	script.runInThisContext();
+	return null;
 }
 //
 function print( text ) {
@@ -67,7 +68,7 @@ app.get('/', (req, res) => {
 			const add_snippet = function ( text, num_found, _res ) {
 				_res.write(JSON.stringify(['add_snippet',text,num_found])+'\n');
 			};
-			result = search ( keywords, add_year, add_paper, add_snippet, res );
+			result = search ( keywords, add_year, add_paper, add_snippet, res, import_js );
 			res.write(JSON.stringify(['done',result]));
 			res.end();
 		} else {
