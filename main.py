@@ -411,7 +411,7 @@ if __name__ == '__main__':
 								word_dictionary.add(w)
 		#
 		data_js = 'data = {\n'
-		for idx, (dir,paper) in enumerate(database.items()):
+		for dir,paper in database.items():
 			#
 			year = paper['year']
 			pdf = paper['pdf']
@@ -469,6 +469,7 @@ if __name__ == '__main__':
 				dir,
 				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices])
 			)
+			#
 			# Write raw words
 			words = ','.join([ "'"+base64.b64encode(line.encode('ascii','ignore')).decode()+"'" for line in lines ])
 			additional_words_data = f"data['{dir}']['words'] = [{words}];"
@@ -476,7 +477,7 @@ if __name__ == '__main__':
 				file.write(additional_words_data)
 		#
 		# Write word table
-		data_js += '};'
+		data_js += '};\n'
 		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
 	#
 	# Generate Javascript file
