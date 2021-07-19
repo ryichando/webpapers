@@ -410,7 +410,8 @@ if __name__ == '__main__':
 							if w not in word_dictionary:
 								word_dictionary.add(w)
 		#
-		for dir,paper in database.items():
+		data_js = 'data = {\n'
+		for idx, (dir,paper) in enumerate(database.items()):
 			#
 			year = paper['year']
 			pdf = paper['pdf']
@@ -445,9 +446,27 @@ if __name__ == '__main__':
 					head_pos += 1
 				indices.append(line_indices)
 			#
-			data_js += "data['{}'] = {{ 'year' : {}, 'index' : [{}] }};\n".format(
+			# Future work
+			# base64.b64encode(b''.join([x.to_bytes(4,'little') for x in [10000,20000,30000,400000]])).decode()
+			#
+			# // https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer/12101012
+			# function toArrayBuffer(buf) {
+			# 	var ab = new ArrayBuffer(buf.length);
+			# 	var view = new Uint8Array(ab);
+			# 	for (var i = 0; i < buf.length; ++i) {
+			# 		view[i] = buf[i];
+			# 	}
+			# 	return ab;
+			# }
+			# const str = 'ECcAACBOAAAwdQAAgBoGAA==';
+			# const buffer = toArrayBuffer(Buffer.from(str,'base64'));
+			# let int32View = new Int32Array(buffer);
+			# for (let i = 0; i < int32View.length; i+=1) {
+			# 	console.log(int32View[i]);
+			# }
+			#
+			data_js += "'{}' : [{}],\n".format(
 				dir,
-				year,
 				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices])
 			)
 			# Write raw words
@@ -457,6 +476,7 @@ if __name__ == '__main__':
 				file.write(additional_words_data)
 		#
 		# Write word table
+		data_js += '};'
 		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
 	#
 	# Generate Javascript file

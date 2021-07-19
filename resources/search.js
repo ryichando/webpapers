@@ -1,6 +1,3 @@
-function sleep (time) {
-	return new Promise((resolve) => setTimeout(resolve, time));
-}
 function search ( keywords, add_year, add_paper, add_snippet, param=null, import_js=null ) {
 	//
 	const html_escape = function (str) {
@@ -65,19 +62,18 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			year_found = false;
 			dirs = papers_yearly[year];
 			for( let dir of dirs ) {
-				value = data[dir];
 				paper_found = false;
 				if( search_from == 'contents' ) {
-					for( let i=0; i<value.index.length; ++i ) {
-						let min = value.index[i].length;
+					for( let i=0; i<data[dir].length; ++i ) {
+						let min = data[dir][i].length;
 						let max = 0;
 						const margin_window = 10;
 						let highlights = [];
 						for( const idx of indices ) {
 							let pos = -1;
-							for( let j=0; j<value.index[i].length; ++j ) {
-								if( value.index[i][j][0] == idx ) {
-									pos = value.index[i][j][1];
+							for( let j=0; j<data[dir][i].length; ++j ) {
+								if( data[dir][i][j][0] == idx ) {
+									pos = data[dir][i][j][1];
 									break;
 								}
 							}
