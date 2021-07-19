@@ -62,18 +62,19 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			year_found = false;
 			dirs = papers_yearly[year];
 			for( let dir of dirs ) {
+				paper_idx = data_map[dir];
 				paper_found = false;
 				if( search_from == 'contents' ) {
-					for( let i=0; i<data[dir].length; ++i ) {
-						let min = data[dir][i].length;
+					for( let i=0; i<data[paper_idx].length; ++i ) {
+						let min = data[paper_idx][i].length;
 						let max = 0;
 						const margin_window = 10;
 						let highlights = [];
 						for( const idx of indices ) {
 							let pos = -1;
-							for( let j=0; j<data[dir][i].length; ++j ) {
-								if( data[dir][i][j][0] == idx ) {
-									pos = data[dir][i][j][1];
+							for( let j=0; j<data[paper_idx][i].length; ++j ) {
+								if( data[paper_idx][i][j][0] == idx ) {
+									pos = data[paper_idx][i][j][1];
 									break;
 								}
 							}
@@ -107,9 +108,9 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 								let max = params['max'];
 								let words;
 								if (typeof window === 'undefined') {
-									words = html_escape(Buffer.from(data[dir].words[i],'base64').toString()).split(' ');
+									words = html_escape(Buffer.from(data_words[dir][i],'base64').toString()).split(' ');
 								} else {
-									words = html_escape(window.atob(data[dir].words[i]).toString()).split(' ');
+									words = html_escape(window.atob(data_words[dir][i]).toString()).split(' ');
 								}
 								for( const pos of highlights ) {
 									words[pos] = '<em>'+words[pos]+'</em>';
@@ -125,7 +126,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 							num_found += 1;
 							//
 							let not_added_snippet = true;
-							if( data[dir].words == undefined ) {
+							if( data_words[dir] == undefined ) {
 								const path = dir+"/words.js";
 								let js = import_js(path);
 								if( js ) {
@@ -158,8 +159,8 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 							}
 						}
 					}
-					if( data[dir].words != undefined ) {
-						delete data[dir].words;
+					if( data_words[dir] != undefined ) {
+						delete data_words[dir];
 					}
 				} else if ( search_from == 'title' ) {
 					let found_all = true;

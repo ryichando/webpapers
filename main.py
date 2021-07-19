@@ -387,7 +387,8 @@ if __name__ == '__main__':
 			file.write(data)
 	#
 	# Build paper references
-	data_js = 'data = {};\n'
+	data_js = 'data = [];\n'
+	data_map = {}
 	#
 	# Add search index
 	if enable_search:
@@ -410,7 +411,8 @@ if __name__ == '__main__':
 							if w not in word_dictionary:
 								word_dictionary.add(w)
 		#
-		data_js = 'data = {\n'
+		data_js = 'data = [\n'
+		idx = 0
 		for dir,paper in database.items():
 			#
 			year = paper['year']
@@ -465,20 +467,23 @@ if __name__ == '__main__':
 			# 	console.log(int32View[i]);
 			# }
 			#
-			data_js += "'{}' : [{}],\n".format(
-				dir,
+			data_js += "[{}],\n".format(
 				','.join(['['+','.join([ f'[{y[0]},{y[1]}]' for y in x ])+']' for x in indices])
 			)
+			data_map[dir] = idx
+			idx += 1
 			#
 			# Write raw words
 			words = ','.join([ "'"+base64.b64encode(line.encode('ascii','ignore')).decode()+"'" for line in lines ])
-			additional_words_data = f"data['{dir}']['words'] = [{words}];"
+			additional_words_data = f"data_words['{dir}'] = [{words}];"
 			with open(os.path.join(root,dir,'words.js'),'w') as file:
 				file.write(additional_words_data)
 		#
 		# Write word table
-		data_js += '};\n'
+		data_js += '];\n'
+		data_js += 'const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) )
 		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+		data_js += 'let data_words = {};\n'
 	#
 	# Generate Javascript file
 	with open(root+'/data.js','w') as file:
