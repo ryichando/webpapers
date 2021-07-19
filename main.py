@@ -4,7 +4,7 @@
 #
 import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk, secrets
 from PIL import Image
-from pybtex.database import parse_file, BibliographyData
+from pybtex.database import parse_file
 from shlex import quote
 #
 def replace_text_by_dictionary( text, dict ):
@@ -73,6 +73,7 @@ def process_directory( root, dir ):
 	# Information list
 	bib = None
 	doi = None
+	abstract = None
 	year = 0
 	title = None
 	pdf = 'main.pdf'
@@ -139,6 +140,8 @@ def process_directory( root, dir ):
 			bib_entry = bib_data.entries[list(bib_data.entries)[0]]
 			fields = bib_entry.fields
 			#
+			if 'abstract' in fields:
+				abstract = fields['abstract']
 			if 'doi' in fields:
 				doi = fields['doi']
 			else:
@@ -276,7 +279,9 @@ def process_directory( root, dir ):
 			image_path = 'images/index.html'
 			if not os.path.exists(mkpath(root,dir,image_path)):
 				image_path = None
+	#
 	return {
+		'abstract' : abstract,
 		'year' : int(year),
 		'pdf' : pdf,
 		'bib' : bib,
@@ -395,15 +400,22 @@ if __name__ == '__main__':
 			pdf = paper['pdf']
 			print( 'Analyzing {}...'.format(dir))
 			lines = pdfdump.dump(mkpath(root,dir,pdf))
+			trust_flags = [ False for _ in range(0,len(lines)) ]
+			#
+			if paper['abstract']:
+				abstract_lines = paper['abstract'].split('\n')
+				lines.extend(abstract_lines)
+				trust_flags.extend([ True for _ in range(0,len(abstract_lines))])
+			#
 			indices = []
 			#
-			for line in lines:
+			for line,flag in zip(lines,trust_flags):
 				line_indices = []
 				head_pos = 0
 				for _word in line.split(' '):
 					for word in remove_special_chars(_word).split('-'):
 						normalized_word = None
-						if word.lower() in word_dictionary:
+						if flag or word.lower() in word_dictionary:
 							normalized_word = stemmer.stem(word.lower())
 							key = word.lower()
 						elif word.isupper() and word.isalpha():
