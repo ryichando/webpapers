@@ -22,6 +22,12 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 		if( word == 'title:' ) {
 			search_from = 'title';
 			keywords.splice(keywords.indexOf('title:'),1);
+		} else if ( word == 'key:' ) {
+			search_from = 'key';
+			keywords.splice(keywords.indexOf('key:'),1);
+		} else if ( word == 'year:' ) {
+			search_from = 'year';
+			keywords.splice(keywords.indexOf('year:'),1);
 		} else if( word == 'all:' ) {
 			show_all = true;
 		}
@@ -180,6 +186,30 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						add_paper(dir,papers[dir],param);
 						if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
 							return '(title) Found '+num_found+' occurrences (exceed max)';
+						}
+					}
+				} else if ( search_from == 'key' ) {
+					if( keywords.length && dir.indexOf(keywords[0]) >= 0 ) {
+						if( ! year_found ) {
+							add_year(year,param);
+							year_found = true;
+						}
+						num_found += 1;
+						add_paper(dir,papers[dir],param);
+						if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
+							return '(key) Found '+num_found+' occurrences (exceed max)';
+						}
+					}
+				} else if ( search_from == 'year' ) {
+					if( keywords.length && year == Number(keywords[0]) ) {
+						if( ! year_found ) {
+							add_year(year,param);
+							year_found = true;
+						}
+						num_found += 1;
+						add_paper(dir,papers[dir],param);
+						if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
+							return '(year) Found '+num_found+' occurrences (exceed max)';
 						}
 					}
 				}
