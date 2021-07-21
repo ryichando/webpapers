@@ -508,7 +508,7 @@ if __name__ == '__main__':
 		if identical_papers:
 			delete_dir_key = None
 			num_remainings = len(identical_papers)
-			print( f'---------{num_remainings} Identical Papers Found ---------')
+			print( f'---------{num_remainings} duplicate(s) found ---------')
 			remove_keys = []
 			for key_0,key_1 in identical_papers:
 				if key_0 in remove_keys or key_1 in remove_keys:
