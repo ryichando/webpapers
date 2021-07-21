@@ -469,6 +469,7 @@ if __name__ == '__main__':
 						remove_keys.append(key_1)
 						break
 				num_remainings -= 1
+				print( '' )
 				print( f'{num_remainings} duplicates remaining...' )
 			for key in remove_keys:
 				del database[key]
