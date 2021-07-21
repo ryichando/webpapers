@@ -294,8 +294,8 @@ def process_directory( root, dir ):
 	return {
 		'abstract' : abstract,
 		'year' : int(year),
-		'volume' : int(volume),
-		'number' : int(number),
+		'volume' : int(volume) if volume else None,
+		'number' : int(number) if number else None,
 		'pdf' : pdf,
 		'bib' : bib,
 		'doi' : doi,
@@ -405,6 +405,9 @@ if __name__ == '__main__':
 		print( '--------- inconsistent papers ----------' )
 		for dir in inconsistent_list:
 			print( f'{dir}: volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
+		#
+		if input('Move them to correct directories? [yes/no]') == 'yes':
+			pass
 		sys.exit()
 	#
 	# Duplicates
