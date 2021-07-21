@@ -318,6 +318,7 @@ if __name__ == '__main__':
 	image_dimension_limit = int(config['DEFAULT']['image_dimension_limit'])
 	image_page_limit = int(config['DEFAULT']['image_page_limit'])
 	convert_video = config['DEFAULT']['convert_video'] == 'yes'
+	check_duplicates = config['DEFAULT']['check_duplicates'] == 'yes'
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
 	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
@@ -375,6 +376,28 @@ if __name__ == '__main__':
 					else:
 						database_yearly[year] = [dir]
 					database[dir] = e
+	#
+	# Duplicates
+	if check_duplicates:
+		#
+		print( 'Checking paper duplicates...' )
+		identical_papers = []
+		for key_0,entry_0 in database.items():
+			for key_1,entry_1 in database.items():
+				if key_0 < key_1:
+					idential = False
+					if entry_0['doi'] and entry_1['doi']:
+						idential = entry_0['doi'] == entry_1['doi']
+					if entry_0['title'] and entry_1['title']:
+						idential = entry_0['title'].lower() == entry_1['title'].lower()
+					if idential:
+						identical_papers.append((key_0,key_1))
+		#
+		if identical_papers:
+			print( f'---------{len(identical_papers)} Identical Papers Found ---------')
+			for key_0,key_1 in identical_papers:
+				print( f'"{key_0}" <==> "{key_1}"')
+			sys.exit()
 	#
 	# If no valid directory is found exit the program
 	if not len(database):
