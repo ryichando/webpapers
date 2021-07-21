@@ -239,7 +239,7 @@
 				} g_body.appendChild(paper_element);
 			}
 			//
-			function add_snippet( text, num_found, param, id=null ) {
+			function add_snippet( text, param=null, id=null ) {
 				//
 				let text_row = document.createElement('div');
 				text_row.className = 'row text-justify m-1 p-1 border rounded search-result';
@@ -251,7 +251,6 @@
 				text_content.innerHTML = text;
 				text_row.appendChild(text_content);
 				g_body.appendChild(text_row);
-				set_status(`Processing... (Found ${num_found} occurrences)`,'info');
 			}
 			//
 			function search_helper() {
@@ -290,7 +289,7 @@
 															add_paper(action[1],action[2],action[3],action[4]);
 															break;
 														case 'add_snippet':
-															add_snippet(action[1],action[2]);
+															add_snippet(action[1],action[2],action[2]);
 															break;
 														case 'done':
 															message = action[1];

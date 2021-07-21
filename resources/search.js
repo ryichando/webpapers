@@ -90,7 +90,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			const min = elm['min'];
 			const max = elm['max'];
 			const positions = elm['positions'];
-			const num_found = elm['num_found'];
+			const tmp_index = elm['tmp_index'];
 			//
 			const get_text = function ( params ) {
 				const i = params['idx'];
@@ -113,13 +113,13 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				return text;
 			};
 			//
-			const snippet_id = `snippet-${num_found}`;
+			const snippet_id = `snippet-${tmp_index}`;
 			let not_added_snippet = true;
 			if( data_words[dir] == undefined ) {
 				const path = dir+"/words.js";
 				let js = import_js(path);
 				if( js ) {
-					add_snippet('Loading...',num_found,param,snippet_id);
+					add_snippet('Loading...',param,snippet_id);
 					js.params = {
 						'id' : snippet_id,
 						'dir' : dir,
@@ -140,14 +140,15 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 					'idx' : i,
 					'min' : min,
 					'max' : max,
-				}),num_found,param,snippet_id);
+				}),param,snippet_id);
 			}
 		}
 	};
 	//
-	num_found = 0;
-	max_year = Math.max.apply(null,Object.keys(papers_yearly));
-	min_year = Math.min.apply(null,Object.keys(papers_yearly));
+	let num_found = 0;
+	let tmp_index = 0;
+	const max_year = Math.max.apply(null,Object.keys(papers_yearly));
+	const min_year = Math.min.apply(null,Object.keys(papers_yearly));
 	//
 	for( let year=max_year; year>=min_year; --year ) {
 		if( year in papers_yearly ) {
@@ -231,12 +232,9 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 								'min' : min,
 								'max' : max,
 								'positions' : positions,
-								'num_found' : num_found,
+								'tmp_index' : tmp_index,
 							});
-							num_found += 1;
-							if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {
-								break;
-							}
+							tmp_index += 1;
 						}
 					}
 					if( data_words[dir] != undefined ) {
@@ -252,10 +250,12 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						add_year(year,param);
 						year_found = true;
 					}
-					if( ! entries.length ) {
+					append_paper(dir,entries,title_highlights,show_key);
+					if( entries.length ) {
+						num_found += entries.length;
+					} else {
 						num_found += 1;
 					}
-					append_paper(dir,entries,title_highlights,show_key);
 				}
 				//
 				if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {

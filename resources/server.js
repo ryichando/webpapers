@@ -68,8 +68,8 @@ app.get('/', (req, res) => {
 			const add_paper = function ( dir, paper, title, show_key, _res ) {
 				_res.write(JSON.stringify(['add_paper',dir,paper,title,show_key])+'\n');
 			};
-			const add_snippet = function ( text, num_found, _res ) {
-				_res.write(JSON.stringify(['add_snippet',text,num_found])+'\n');
+			const add_snippet = function ( text, _res, snippet_id ) {
+				_res.write(JSON.stringify(['add_snippet',text,null,snippet_id])+'\n');
 			};
 			result = search ( keywords, add_year, add_paper, add_snippet, res, import_js );
 			res.write(JSON.stringify(['done',result]));
