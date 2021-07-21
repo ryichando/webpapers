@@ -156,7 +156,7 @@ def process_directory( root, dir ):
 			if 'number' in fields:
 				number = fields['number']
 			if 'title' in fields:
-				title = remove_curly_bracket(remove_curly_bracket(fields['title'].encode().decode('latex')))
+				title = remove_curly_bracket(remove_curly_bracket(fields['title'].encode("ascii","ignore").decode('latex')))
 				if title.lower() == "editorial":
 					return None
 				if 'session details:' in title.lower():
@@ -178,13 +178,13 @@ def process_directory( root, dir ):
 						for j,name in enumerate(person.first_names):
 							if j == 0:
 								authors_str += ' '
-							authors_str += remove_curly_bracket(name.encode().decode('latex'))
+							authors_str += remove_curly_bracket(name.encode("ascii","ignore").decode('latex'))
 					if len(person.middle_names):
 						for name in person.middle_names:
-							authors_str += ' '+remove_curly_bracket(name.encode().decode('latex'))
+							authors_str += ' '+remove_curly_bracket(name.encode("ascii","ignore").decode('latex'))
 					if len(person.last_names):
 						for name in person.last_names:
-							authors_str += ' '+remove_curly_bracket(name.encode().decode('latex'))
+							authors_str += ' '+remove_curly_bracket(name.encode("ascii","ignore").decode('latex'))
 					if i < len(persons['author'])-1:
 						authors_str += ' and ' if i == len(persons['author'])-2 else ', '
 				if not authors_str:
@@ -192,9 +192,9 @@ def process_directory( root, dir ):
 				authors = authors_str
 			#
 			if 'journal' in fields:
-				journal = fix_jornal(fields['journal'].encode().decode('latex'))
+				journal = fix_jornal(fields['journal'].encode("ascii","ignore").decode('latex'))
 			elif 'booktitle' in fields:
-				journal = fix_jornal(fields['booktitle'].encode().decode('latex'))
+				journal = fix_jornal(fields['booktitle'].encode("ascii","ignore").decode('latex'))
 		#
 		# List files and videos
 		if not file.startswith('.'):
