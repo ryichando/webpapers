@@ -475,6 +475,8 @@ if __name__ == '__main__':
 						print( f'Deleting {rm_path}...' )
 						shutil.rmtree(rm_path)
 				time.sleep(3)
+				print('')
+				print('----')
 		sys.exit()
 	#
 	if inconsistent_list:
