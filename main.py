@@ -466,7 +466,7 @@ if __name__ == '__main__':
 						break
 					elif choice == 3:
 						print( 'Skipping...' )
-						continue
+						break
 					elif choice == 4:
 						print( f'Removing both... ({key_0},{key_1})' )
 						shutil.rmtree(os.path.join(root,key_0))
