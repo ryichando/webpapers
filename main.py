@@ -153,6 +153,8 @@ def process_directory( root, dir ):
 				print( 'WARNING: year not found ')
 			if 'title' in fields:
 				title = remove_curly_bracket(fields['title'])
+				if title.lower() == "editorial":
+					return None
 			else:
 				meta_data = info.open_metadata()
 				if 'dc:title' in meta_data:
