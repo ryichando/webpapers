@@ -441,6 +441,7 @@ if __name__ == '__main__':
 			for key_0,key_1 in identical_papers:
 				if key_0 in remove_keys or key_1 in remove_keys:
 					num_remainings -= 1
+					print( f'{num_remainings} duplicates remaining...' )
 					continue
 				print( '' )
 				print( f'"{key_0}" <==> "{key_1}"')
