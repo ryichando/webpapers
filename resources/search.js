@@ -51,7 +51,6 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						if( pair.length == 2 ) {
 							const year_from = Number(pair[0]);
 							const year_to = Number(pair[1]);
-							console.log( year_from, year_to );
 							for( let y=year_from; y<=year_to; ++y ) {
 								keywords_dict[mode].push(y.toString());
 							}
