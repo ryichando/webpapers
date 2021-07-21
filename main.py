@@ -442,8 +442,7 @@ if __name__ == '__main__':
 			print( f'year: {e["year"]}')
 			print( f'path: {os.path.join(root,dir)}' )
 			print( '----')
-		answer = input('Fix? [yes/no/delete]: ')
-		if answer == 'yes':
+		if input('Fix? [yes/no]: ') == 'yes':
 			for dir,e in broken_list.items():
 				shutil.rmtree(os.path.join(root,dir,"thumbnails"),ignore_errors=True)
 				shutil.rmtree(os.path.join(root,dir,"images"),ignore_errors=True)
@@ -459,19 +458,23 @@ if __name__ == '__main__':
 					options = f'--user-agent="{headers["User-Agent"]}"'
 					subprocess.call(f'wget {options} -O {pdf_path} {url}',shell=True)
 				#
+				ask_for_delete = False
 				if os.path.exists(pdf_path):
 					if check_valid_pdf(pdf_path):
 						print( 'Successfully confirmed new PDF' )
 					else:
 						print( 'PDF now exists but still broken...' )
+						ask_for_delete = True
 				else:
-					print('PDF still does not exist. Skipping...')
+					print('PDF still does not exist.')
+					ask_for_delete = True
+				#
+				if ask_for_delete:
+					if input('Delete? [yes/no]: ') == 'yes':
+						rm_path = os.path.join(root,dir)
+						print( f'Deleting {rm_path}...' )
+						shutil.rmtree(rm_path)
 				time.sleep(3)
-
-		elif answer == 'delete':
-			rm_path = os.path.join(root,dir)
-			print( f'Deleting {rm_path}...' )
-			shutil.rmtree(rm_path)
 		sys.exit()
 	#
 	if inconsistent_list:
