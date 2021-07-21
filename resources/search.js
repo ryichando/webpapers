@@ -39,11 +39,29 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 		} else {
 			if( mode == 'word') {
 				has_content = true;
-				if ( word in word_table ) {
-					keywords_dict[mode].push(word_table[word]);
+				for( const w of word.split('-')) {
+					if ( w in word_table ) {
+						keywords_dict[mode].push(word_table[w]);
+					}
 				}
 			} else {
-				keywords_dict[mode].push(word);
+				if( mode == 'year' ) {
+					if( word.indexOf('-') >= 0 ) {
+						const pair = word.split('-');
+						if( pair.length == 2 ) {
+							const year_from = Number(pair[0]);
+							const year_to = Number(pair[1]);
+							console.log( year_from, year_to );
+							for( let y=year_from; y<=year_to; ++y ) {
+								keywords_dict[mode].push(y.toString());
+							}
+						}
+					} else {
+						keywords_dict[mode].push(...word.split('-'));
+					}
+				} else {
+					keywords_dict[mode].push(...word.split('-'));
+				}
 			}
 		}
 	}
@@ -52,7 +70,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 		return 'Not found (word not in dictionary)';
 	}
 	//
-	const append_paper = function ( dir, entries, title_highlights=null ) {
+	const append_paper = function ( dir, entries, title_highlights=null, show_key=false ) {
 		//
 		title = papers[dir]['title'];
 		for( const w of title_highlights ) {
@@ -61,7 +79,8 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				title = title.substr(0,i)+'<em>'+title.substr(i,w.length)+'</em>'+title.substr(i+w.length,title.length);
 			}
 		}
-		add_paper(dir,papers[dir],title,param);
+		//
+		add_paper(dir,papers[dir],title,show_key,param);
 		//
 		const margin_window = 10;
 		for( const elm of entries ) {
@@ -140,6 +159,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				//
 				let paper_pass = [];
 				let title_highlights = [];
+				let show_key = false;
 				if( keywords_dict['title'].length ) {
 					//
 					let flag = true;
@@ -157,10 +177,11 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				}
 				//
 				if( keywords_dict['key'].length ) {
-					let flag = true;
+					let flag = false;
 					for (const word of keywords_dict['key'] ) {
-						if( dir.indexOf(word) < 0 ) {
-							flag = false;
+						if( dir.indexOf(word) >= 0 ) {
+							flag = true;
+							show_key = true;
 							break;
 						}
 					}
@@ -168,10 +189,10 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				}
 				//
 				if( keywords_dict['year'].length ) {
-					let flag = true;
+					let flag = false;
 					for (const y of keywords_dict['year'] ) {
 						if( year != Number(y) ) {
-							flag = false;
+							flag = true;
 							break;
 						}
 					}
@@ -233,7 +254,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 					if( ! entries.length ) {
 						num_found += 1;
 					}
-					append_paper(dir,entries,title_highlights);
+					append_paper(dir,entries,title_highlights,show_key);
 				}
 				//
 				if( num_max_search_hit > 0 && num_found >= num_max_search_hit ) {

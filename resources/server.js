@@ -65,8 +65,8 @@ app.get('/', (req, res) => {
 			const add_year = function ( year, _res ) {
 				_res.write(JSON.stringify(['add_year',year])+'\n');
 			};
-			const add_paper = function ( dir, paper, title, _res ) {
-				_res.write(JSON.stringify(['add_paper',dir,paper,title])+'\n');
+			const add_paper = function ( dir, paper, title, show_key, _res ) {
+				_res.write(JSON.stringify(['add_paper',dir,paper,title,show_key])+'\n');
 			};
 			const add_snippet = function ( text, num_found, _res ) {
 				_res.write(JSON.stringify(['add_snippet',text,num_found])+'\n');
