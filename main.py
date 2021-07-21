@@ -437,7 +437,7 @@ if __name__ == '__main__':
 				if 'doi' in database[key_0] and 'doi' in database[key_1]:
 					print( f'{database[key_0]["doi"]} <==> {database[key_1]["doi"]}' )
 				while True:
-					choice = int(input('Remove? [left:1] [right:2] [neither:3] [both:4] [abord:5]'))
+					choice = int(input('Remove? [left:1] [right:2] [neither:3] [both:4] [abord:5]: '))
 					if choice == 1:
 						shutil.rmtree(key_0)
 						remove_keys.append(key_0)
