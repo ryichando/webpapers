@@ -30,7 +30,9 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 	let has_content = false;
 	for( let i=0; i<keywords.length; ++i ) {
 		const word = keywords[i];
-		if( word == 'title:' ) {
+		if( word == 'keyword:' ) {
+			mode = 'word';
+		} else if( word == 'title:' ) {
 			mode = 'title';
 		} else if ( word == 'key:' ) {
 			mode = 'key';
