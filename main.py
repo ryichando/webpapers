@@ -442,6 +442,9 @@ if __name__ == '__main__':
 			print( f'year: {e["year"]}')
 			print( f'path: {os.path.join(root,dir)}' )
 			print( '----')
+		#
+		num_remainings = len(broken_list.keys())
+		print( f'{num_remainings} papers' )
 		if input('Fix? [yes/no]: ') == 'yes':
 			for dir,e in broken_list.items():
 				shutil.rmtree(os.path.join(root,dir,"thumbnails"),ignore_errors=True)
@@ -476,7 +479,8 @@ if __name__ == '__main__':
 						shutil.rmtree(rm_path)
 				time.sleep(3)
 				print('')
-				print('----')
+				num_remainings -= 1
+				print( f'--- {num_remainings} papers remaining... ---' )
 		sys.exit()
 	#
 	if inconsistent_list:
