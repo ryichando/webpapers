@@ -155,6 +155,8 @@ def process_directory( root, dir ):
 				title = remove_curly_bracket(fields['title'])
 				if title.lower() == "editorial":
 					return None
+				if 'session details:' in title.lower():
+					return None
 			else:
 				meta_data = info.open_metadata()
 				if 'dc:title' in meta_data:
