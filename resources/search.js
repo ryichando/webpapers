@@ -192,7 +192,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				if( keywords_dict['year'].length ) {
 					let flag = false;
 					for (const y of keywords_dict['year'] ) {
-						if( year != Number(y) ) {
+						if( year == Number(y) ) {
 							flag = true;
 							break;
 						}
