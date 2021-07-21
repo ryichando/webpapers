@@ -438,22 +438,27 @@ if __name__ == '__main__':
 				while True:
 					choice = int(input('Remove? [left 1] [right 2] [neither 3] [both 4] [abord 5]: '))
 					if choice == 1:
+						print( 'Removing left...' )
 						shutil.rmtree(os.path.join(root,key_0))
 						remove_keys.append(key_0)
 						break
 					elif choice == 2:
+						print( 'Removing right...' )
 						shutil.rmtree(os.path.join(root,key_1))
 						remove_keys.append(key_1)
 						break
 					elif choice == 3:
+						print( 'Skipping...' )
 						continue
 					elif choice == 4:
+						print( 'Removing both...' )
 						shutil.rmtree(os.path.join(root,key_0))
 						shutil.rmtree(os.path.join(root,key_1))
 						remove_keys.append(key_0)
 						remove_keys.append(key_1)
 						break
 					elif choice == 5:
+						print( 'Abording.' )
 						sys.exit()
 				num_remainings -= 1
 				print( f'{num_remainings} duplicates remaining...' )
