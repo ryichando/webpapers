@@ -147,8 +147,6 @@ def process_directory( root, dir ):
 				abstract = fields['abstract']
 			if 'doi' in fields:
 				doi = fields['doi']
-			else:
-				print( 'WARNING: doi not found ')
 			if 'year' in fields:
 				year = int(fields['year'])
 			else:
