@@ -2,16 +2,20 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk, secrets, re
+import os, sys, configparser, subprocess, json, argparse, latexcodec
+import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
 from PIL import Image
 from pybtex.database import parse_file
 from shlex import quote
 #
 def replace_text_by_dictionary( text, dict ):
-	for key in dict.keys():
-		if key in text:
-			text = text.replace(key,dict[key])
-	return text
+	if dict:
+		for key in dict.keys():
+			if key in text:
+				text = text.replace(key,dict[key])
+		return text
+	else:
+		return text
 #
 def remove_curly_bracket( text ):
 	return replace_text_by_dictionary(text,{
@@ -20,11 +24,7 @@ def remove_curly_bracket( text ):
 	})
 #
 def fix_jornal( title ):
-	return remove_curly_bracket(replace_text_by_dictionary(title,{
-		'ACM Trans. Graph.' : 'ACM Transactions on Graphics (TOG)',
-		'J. Comput. Phys.' : 'Journal of Computational Physics',
-		'Comput. Graph. Forum' : 'Computer Graphics Forum',
-	}))
+	return replace_text_by_dictionary(remove_curly_bracket(title),journal_table)
 #
 def run_command( cmd ):
 	subprocess.call(cmd,shell=True)
@@ -156,7 +156,7 @@ def process_directory( root, dir ):
 			if 'number' in fields:
 				number = fields['number']
 			if 'title' in fields:
-				title = remove_curly_bracket(fields['title'])
+				title = remove_curly_bracket(remove_curly_bracket(fields['title'].encode().decode('latex')))
 				if title.lower() == "editorial":
 					return None
 				if 'session details:' in title.lower():
@@ -178,23 +178,23 @@ def process_directory( root, dir ):
 						for j,name in enumerate(person.first_names):
 							if j == 0:
 								authors_str += ' '
-							authors_str += name
+							authors_str += remove_curly_bracket(name.encode().decode('latex'))
 					if len(person.middle_names):
 						for name in person.middle_names:
-							authors_str += ' '+remove_special_chars(name)
+							authors_str += ' '+remove_curly_bracket(name.encode().decode('latex'))
 					if len(person.last_names):
 						for name in person.last_names:
-							authors_str += ' '+remove_special_chars(name)
+							authors_str += ' '+remove_curly_bracket(name.encode().decode('latex'))
 					if i < len(persons['author'])-1:
 						authors_str += ' and ' if i == len(persons['author'])-2 else ', '
 				if not authors_str:
 					print( f'WARNING: {dir} is missing author info.')
-				authors = remove_special_chars(authors_str)
+				authors = authors_str
 			#
 			if 'journal' in fields:
-				journal = fix_jornal(fields['journal'])
+				journal = fix_jornal(fields['journal'].encode().decode('latex'))
 			elif 'booktitle' in fields:
-				journal = fix_jornal(fields['booktitle'])
+				journal = fix_jornal(fields['booktitle'].encode().decode('latex'))
 		#
 		# List files and videos
 		if not file.startswith('.'):
@@ -331,6 +331,7 @@ if __name__ == '__main__':
 	image_page_limit = int(config['DEFAULT']['image_page_limit'])
 	convert_video = config['DEFAULT']['convert_video'] == 'yes'
 	check_duplicates = config['DEFAULT']['check_duplicates'] == 'yes'
+	journal_table_file = config['DEFAULT']['journal_table'] if config.has_option('DEFAULT','journal_table') else None
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
 	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
@@ -340,6 +341,15 @@ if __name__ == '__main__':
 	show_all = config['DEFAULT']['show_all'] == 'yes'
 	word_window_size = int(config['DEFAULT']['word_window_size'])
 	resource_dir = 'resources'
+	#
+	# Load journabl table
+	journal_table = {}
+	if journal_table_file:
+		with open(os.path.join(root,journal_table_file)) as fp:
+			lines = fp.readlines()
+			for line in lines:
+				row = [name.strip() for name in line.split(':')]
+				journal_table[row[0]] = row[1]
 	#
 	# If the "clean" flag is specified, clean them all
 	if args.clean:

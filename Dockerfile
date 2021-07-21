@@ -6,7 +6,7 @@ RUN apt-get -y install ffmpeg poppler-utils
 ENV TERM xterm
 
 ENV PYTHONDONTWRITEBYTECODE 1
-RUN pip install unidecode pillow pybtex pikepdf nltk
+RUN pip install unidecode pillow pybtex pikepdf nltk latexcodec
 
 WORKDIR /root
 ENTRYPOINT ["/usr/local/bin/python3","-u","main.py"]

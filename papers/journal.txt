@@ -1,0 +1,3 @@
+ACM Trans. Graph. : ACM Transactions on Graphics (TOG)
+J. Comput. Phys. : Journal of Computational Physics
+Comput. Graph. Forum : Computer Graphics Forum
