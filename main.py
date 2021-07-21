@@ -426,7 +426,8 @@ if __name__ == '__main__':
 						identical_papers.append((key_0,key_1))
 		#
 		if identical_papers:
-			print( f'---------{len(identical_papers)} Identical Papers Found ---------')
+			num_remainings = len(identical_papers)
+			print( f'---------{num_remainings} Identical Papers Found ---------')
 			remove_keys = []
 			for key_0,key_1 in identical_papers:
 				print( f'"{key_0}" <==> "{key_1}"')
@@ -455,6 +456,8 @@ if __name__ == '__main__':
 						break
 					elif choice == 5:
 						sys.exit()
+				num_remainings -= 1
+				print( f'{num_remainings} duplicates remaining...' )
 			for key in remove_keys:
 				del database[key]
 	#
