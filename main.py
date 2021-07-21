@@ -76,6 +76,13 @@ def check_valid_pdf(path):
 		return False
 	return True
 #
+# https://stackoverflow.com/questions/6330071/safe-casting-in-python
+def safe_cast(val, to_type, default=None):
+	try:
+		return to_type(val)
+	except (ValueError, TypeError):
+		return default
+#
 def process_directory( root, dir ):
 	#
 	# Information list
@@ -154,7 +161,7 @@ def process_directory( root, dir ):
 			if 'doi' in fields:
 				doi = fields['doi']
 			if 'year' in fields:
-				year = int(fields['year'])
+				year = safe_cast(fields['year'],int)
 			else:
 				print( 'WARNING: year not found ')
 			if 'volume' in fields:
@@ -299,9 +306,9 @@ def process_directory( root, dir ):
 	#
 	return {
 		'abstract' : abstract,
-		'year' : int(year),
-		'volume' : int(volume) if volume else None,
-		'number' : int(number) if number else None,
+		'year' : year,
+		'volume' : safe_cast(volume,int) if volume else None,
+		'number' : safe_cast(number,int) if number else None,
 		'pdf' : pdf,
 		'bib' : bib,
 		'doi' : doi,
