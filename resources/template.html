@@ -106,7 +106,7 @@
 						// For each paper
 						dirs = papers_yearly[year];
 						for (const dir of dirs) {
-							add_paper(dir,papers[dir]);
+							add_paper(dir,papers[dir],papers[dir]['title']);
 						}
 					}
 				}
@@ -145,7 +145,7 @@
 				g_body.appendChild(year_header);
 			}
 			//
-			function add_paper( dir, paper, param ) {
+			function add_paper( dir, paper, title, param ) {
 				//
 				// Create paper row
 				let paper_element = document.createElement('div'); {
@@ -176,7 +176,7 @@
 						//
 						// Create title
 						let title_element = document.createElement('div');
-						title_element.innerHTML = `<h5>${paper['title']}</h5>`;
+						title_element.innerHTML = `<h5>${title}</h5>`;
 						title_element.id = dir+'-title';
 						body_element.appendChild(title_element);
 						//
@@ -270,7 +270,7 @@
 															add_year(action[1]);
 															break;
 														case 'add_paper':
-															add_paper(action[1],action[2]);
+															add_paper(action[1],action[2],action[3]);
 															break;
 														case 'add_snippet':
 															add_snippet(action[1],action[2]);
