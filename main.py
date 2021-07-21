@@ -454,6 +454,9 @@ if __name__ == '__main__':
 					}
 					options = f'--user-agent="{headers["User-Agent"]}"'
 					subprocess.call(f'wget {options} -O {os.path.join(root,dir,e["pdf"])} {url}',shell=True)
+					shutil.rmtree(os.path.join(root,dir,"thumbnails"),ignore_errors=True)
+					shutil.rmtree(os.path.join(root,dir,"images"),ignore_errors=True)
+
 		elif answer == 'delete':
 			rm_path = os.path.join(root,dir)
 			print( f'Deleting {rm_path}...' )
