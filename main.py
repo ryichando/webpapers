@@ -378,6 +378,7 @@ if __name__ == '__main__':
 	database = {}
 	database_yearly = {}
 	inconsistent_list = []
+	tmp_idx = 0
 	for current_dir, dirs, files in os.walk(root):
 		for dir in dirs:
 			if not dir in ['__pycache__',resource_dir,'images','converted','thumbnails']:
@@ -408,7 +409,8 @@ if __name__ == '__main__':
 						database_yearly[year].append(dir)
 					else:
 						database_yearly[year] = [dir]
-					database[dir] = e
+					database[dir] = e | { 'tmp_idx' : tmp_idx }
+					tmp_idx += 1
 	#
 	if inconsistent_list:
 		print( '--------- inconsistent papers ----------' )
@@ -423,7 +425,7 @@ if __name__ == '__main__':
 		identical_papers = []
 		for key_0,entry_0 in database.items():
 			for key_1,entry_1 in database.items():
-				if key_0 < key_1:
+				if entry_0['tmp_idx'] < entry_1['tmp_idx']:
 					idential = False
 					if entry_0['doi'] and entry_1['doi']:
 						idential = entry_0['doi'] == entry_1['doi']
