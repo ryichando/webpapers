@@ -165,6 +165,8 @@ def process_directory( root, dir ):
 					return None
 				if 'research' in title.lower() and 'award' in title.lower():
 					return None
+				if 'committee' in title.lower() and 'election' in title.lower():
+					return None
 			else:
 				meta_data = info.open_metadata()
 				if 'dc:title' in meta_data:
@@ -412,7 +414,7 @@ if __name__ == '__main__':
 	# Duplicates
 	if check_duplicates:
 		#
-		print( 'Checking paper duplicates...' )
+		print( 'Checking for paper duplicates...' )
 		identical_papers = []
 		for key_0,entry_0 in database.items():
 			for key_1,entry_1 in database.items():
