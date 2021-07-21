@@ -348,7 +348,7 @@ if __name__ == '__main__':
 		with open(os.path.join(root,journal_table_file)) as fp:
 			lines = fp.readlines()
 			for line in lines:
-				row = [name.strip() for name in line.split(':')]
+				row = [name.strip() for name in line.split('==>')]
 				journal_table[row[0]] = row[1]
 	#
 	# If the "clean" flag is specified, clean them all
