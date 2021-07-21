@@ -430,6 +430,7 @@ if __name__ == '__main__':
 			print( f'---------{num_remainings} Identical Papers Found ---------')
 			remove_keys = []
 			for key_0,key_1 in identical_papers:
+				print( '' )
 				print( f'"{key_0}" <==> "{key_1}"')
 				if 'title' in database[key_0] and 'title' in database[key_1]:
 					print( f'{database[key_0]["title"]} <==> {database[key_1]["title"]}' )
