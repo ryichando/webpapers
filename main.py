@@ -437,8 +437,11 @@ if __name__ == '__main__':
 				if 'doi' in database[key_0] and 'doi' in database[key_1]:
 					print( f'{database[key_0]["doi"]} <==> {database[key_1]["doi"]}' )
 				while True:
-					choice = int(input('Remove? [left 1] [right 2] [neither 3] [both 4] [abord 5]: '))
-					if choice == 1:
+					choice = int(input('Remove? [abord 0] [left 1] [right 2] [neither 3] [both 4]: '))
+					if choice == 0:
+						print( 'Abording.' )
+						sys.exit()
+					elif choice == 1:
 						print( f'Removing left... ({key_0})' )
 						shutil.rmtree(os.path.join(root,key_0))
 						remove_keys.append(key_0)
@@ -458,9 +461,6 @@ if __name__ == '__main__':
 						remove_keys.append(key_0)
 						remove_keys.append(key_1)
 						break
-					elif choice == 5:
-						print( 'Abording.' )
-						sys.exit()
 				num_remainings -= 1
 				print( f'{num_remainings} duplicates remaining...' )
 			for key in remove_keys:
