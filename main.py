@@ -165,8 +165,6 @@ def process_directory( root, dir ):
 					return None
 				if 'research' in title.lower() and 'award' in title.lower():
 					return None
-				if 'committee' in title.lower() and 'election' in title.lower():
-					return None
 			else:
 				meta_data = info.open_metadata()
 				if 'dc:title' in meta_data:
@@ -429,10 +427,36 @@ if __name__ == '__main__':
 		#
 		if identical_papers:
 			print( f'---------{len(identical_papers)} Identical Papers Found ---------')
+			remove_keys = []
 			for key_0,key_1 in identical_papers:
 				print( f'"{key_0}" <==> "{key_1}"')
-			#
-			sys.exit()
+				print( 'Left	Right')
+				if 'title' in database[key_0] and 'title' in database[key_1]:
+					print( f'{database[key_0]["title"]} <==> {database[key_1]["title"]}' )
+				if 'doi' in database[key_0] and 'doi' in database[key_1]:
+					print( f'{database[key_0]["doi"]} <==> {database[key_1]["doi"]}' )
+				while True:
+					choice = int(input('Remove? [left:1] [right:2] [neither:3] [both:4] [abord:5]'))
+					if choice == 1:
+						shutil.rmtree(key_0)
+						remove_keys.append(key_0)
+						break
+					elif choice == 2:
+						shutil.rmtree(key_1)
+						remove_keys.append(key_1)
+						break
+					elif choice == 3:
+						continue
+					elif choice == 4:
+						shutil.rmtree(key_0)
+						shutil.rmtree(key_1)
+						remove_keys.append(key_0)
+						remove_keys.append(key_1)
+						break
+					elif choice == 5:
+						sys.exit()
+			for key in remove_keys:
+				del database[key]
 	#
 	# If no valid directory is found exit the program
 	if not len(database):
