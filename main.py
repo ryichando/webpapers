@@ -2,7 +2,7 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk, secrets
+import os, sys, configparser, subprocess, json, argparse, shutil, pikepdf, pdfdump, base64, nltk, secrets, re
 from PIL import Image
 from pybtex.database import parse_file
 from shlex import quote
@@ -78,6 +78,8 @@ def process_directory( root, dir ):
 	year = 0
 	title = None
 	pdf = 'main.pdf'
+	volume = None
+	number = None
 	authors = None
 	journal = None
 	image_path = None
@@ -151,6 +153,10 @@ def process_directory( root, dir ):
 				year = int(fields['year'])
 			else:
 				print( 'WARNING: year not found ')
+			if 'volume' in fields:
+				volume = fields['volume']
+			if 'number' in fields:
+				number = fields['number']
 			if 'title' in fields:
 				title = remove_curly_bracket(fields['title'])
 				if title.lower() == "editorial":
@@ -288,6 +294,8 @@ def process_directory( root, dir ):
 	return {
 		'abstract' : abstract,
 		'year' : int(year),
+		'volume' : int(volume),
+		'number' : int(number),
 		'pdf' : pdf,
 		'bib' : bib,
 		'doi' : doi,
@@ -367,6 +375,7 @@ if __name__ == '__main__':
 	# Probe all the directories
 	database = {}
 	database_yearly = {}
+	inconsistent_list = []
 	for current_dir, dirs, files in os.walk(root):
 		for dir in dirs:
 			if not dir in ['__pycache__',resource_dir,'images','converted','thumbnails']:
@@ -374,12 +383,29 @@ if __name__ == '__main__':
 				dir = '/'.join(path.split('/')[1:])
 				e = process_directory(path.split('/')[0],dir)
 				if e:
+					if e['volume'] and e['number']:
+						matches = re.findall(r'volume\/(\d.)\/(\d)',dir)
+						if matches:
+							volume = int(matches[0][0])
+							number = int(matches[0][1])
+							if volume == e['volume'] and number == e['number']:
+								pass
+							else:
+								inconsistent_list.append(dir)
+								print( 'WARNING: Inconsistent volume and number!!' )
+					#
 					year = e['year']
 					if year in database_yearly.keys():
 						database_yearly[year].append(dir)
 					else:
 						database_yearly[year] = [dir]
 					database[dir] = e
+	#
+	if inconsistent_list:
+		print( '--------- inconsistent papers ----------' )
+		for dir in inconsistent_list:
+			print( f'{dir}: volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
+		sys.exit()
 	#
 	# Duplicates
 	if check_duplicates:
@@ -401,6 +427,7 @@ if __name__ == '__main__':
 			print( f'---------{len(identical_papers)} Identical Papers Found ---------')
 			for key_0,key_1 in identical_papers:
 				print( f'"{key_0}" <==> "{key_1}"')
+			#
 			sys.exit()
 	#
 	# If no valid directory is found exit the program
