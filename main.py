@@ -439,18 +439,18 @@ if __name__ == '__main__':
 				while True:
 					choice = int(input('Remove? [left:1] [right:2] [neither:3] [both:4] [abord:5]: '))
 					if choice == 1:
-						shutil.rmtree(key_0)
+						shutil.rmtree(os.path.join(root,key_0))
 						remove_keys.append(key_0)
 						break
 					elif choice == 2:
-						shutil.rmtree(key_1)
+						shutil.rmtree(os.path.join(root,key_1))
 						remove_keys.append(key_1)
 						break
 					elif choice == 3:
 						continue
 					elif choice == 4:
-						shutil.rmtree(key_0)
-						shutil.rmtree(key_1)
+						shutil.rmtree(os.path.join(root,key_0))
+						shutil.rmtree(os.path.join(root,key_1))
 						remove_keys.append(key_0)
 						remove_keys.append(key_1)
 						break
