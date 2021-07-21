@@ -438,11 +438,12 @@ if __name__ == '__main__':
 					if entry_0['doi'] and entry_1['doi']:
 						idential = entry_0['doi'] == entry_1['doi']
 					if entry_0['title'] and entry_1['title']:
-						idential = entry_0['title'].lower() == entry_1['title'].lower()
+						idential = idential or entry_0['title'].lower() == entry_1['title'].lower()
 					if idential:
 						identical_papers.append((key_0,key_1))
 		#
 		if identical_papers:
+			delete_dir_key = None
 			num_remainings = len(identical_papers)
 			print( f'---------{num_remainings} Identical Papers Found ---------')
 			remove_keys = []
@@ -458,30 +459,50 @@ if __name__ == '__main__':
 				if 'doi' in database[key_0] and 'doi' in database[key_1]:
 					print( f'{database[key_0]["doi"]} <==> {database[key_1]["doi"]}' )
 				while True:
-					choice = int(input('Remove? [abord 0] [left 1] [right 2] [neither 3] [both 4]: '))
-					if choice == 0:
-						print( 'Abording.' )
-						sys.exit()
-					elif choice == 1:
-						print( f'Removing left... ({key_0})' )
-						shutil.rmtree(os.path.join(root,key_0))
-						remove_keys.append(key_0)
+					if delete_dir_key:
+						if delete_dir_key in key_0:
+							print( f'Removing ({key_0})...' )
+							shutil.rmtree(os.path.join(root,key_0))
+							remove_keys.append(key_0)
+						elif delete_dir_key in key_1:
+							print( f'Removing ({key_1})...' )
+							shutil.rmtree(os.path.join(root,key_1))
+							remove_keys.append(key_1)
+						else:
+							print( 'Skipping...' )
 						break
-					elif choice == 2:
-						print( f'Removing right... ({key_1})' )
-						shutil.rmtree(os.path.join(root,key_1))
-						remove_keys.append(key_1)
-						break
-					elif choice == 3:
-						print( 'Skipping...' )
-						break
-					elif choice == 4:
-						print( f'Removing both... ({key_0},{key_1})' )
-						shutil.rmtree(os.path.join(root,key_0))
-						shutil.rmtree(os.path.join(root,key_1))
-						remove_keys.append(key_0)
-						remove_keys.append(key_1)
-						break
+					else:
+						choice = int(input('Remove? [abord 0] [left 1] [right 2] [neither 3] [both 4] [special 5]: '))
+						if choice == 0:
+							print( 'Abording.' )
+							sys.exit()
+						elif choice == 1:
+							print( f'Removing left... ({key_0})' )
+							shutil.rmtree(os.path.join(root,key_0))
+							remove_keys.append(key_0)
+							break
+						elif choice == 2:
+							print( f'Removing right... ({key_1})' )
+							shutil.rmtree(os.path.join(root,key_1))
+							remove_keys.append(key_1)
+							break
+						elif choice == 3:
+							print( 'Skipping...' )
+							break
+						elif choice == 4:
+							print( f'Removing both... ({key_0},{key_1})' )
+							shutil.rmtree(os.path.join(root,key_0))
+							shutil.rmtree(os.path.join(root,key_1))
+							remove_keys.append(key_0)
+							remove_keys.append(key_1)
+						elif choice == 5:
+							delete_dir_key = input('Enter a name of portion of path that will be always chosen to delete: ')
+							if delete_dir_key:
+								print( 'set '+delete_dir_key )
+								continue
+							else:
+								print( 'Not set. Skipping...' )
+								break
 				num_remainings -= 1
 				print( '' )
 				print( f'{num_remainings} duplicates remaining...' )
