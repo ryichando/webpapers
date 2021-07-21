@@ -69,6 +69,13 @@ def clean( lines, dictionary ):
 	#
 	return results
 #
+def check_valid_pdf(path):
+	try:
+		pikepdf.open(path).open_metadata()
+	except:
+		return False
+	return True
+#
 def process_directory( root, dir ):
 	#
 	# Information list
@@ -83,6 +90,7 @@ def process_directory( root, dir ):
 	authors = None
 	journal = None
 	image_path = None
+	pdf_broken = False
 	thumbnails = []
 	files = []
 	videos = []
@@ -97,12 +105,10 @@ def process_directory( root, dir ):
 	if not os.path.exists(mkpath(root,dir,pdf)):
 		return None
 	#
+	if not check_valid_pdf(mkpath(root,dir,pdf)):
+		pdf_broken = True
+	#
 	print(f'Processing {dir}...')
-	try:
-		info = pikepdf.open(mkpath(root,dir,pdf))
-	except:
-		print( f'WARNING: opening {dir} failed.' )
-		return None
 	#
 	for file in os.listdir(mkpath(root,dir)):
 		#
@@ -208,7 +214,7 @@ def process_directory( root, dir ):
 				videos.append(video_path)
 	#
 	# Process a PDF
-	if os.path.exists(mkpath(root,dir,pdf)):
+	if not pdf_broken:
 		#
 		# Generate PDF thumbnail
 		create_flag = False
@@ -305,7 +311,8 @@ def process_directory( root, dir ):
 		'thumbnails' : thumbnails,
 		'files' : files,
 		'videos' : videos,
-		'image_page' : image_path
+		'image_page' : image_path,
+		'pdf_broken' : pdf_broken,
 	}
 #
 def asciify( str ):
@@ -386,6 +393,7 @@ if __name__ == '__main__':
 	database = {}
 	database_yearly = {}
 	inconsistent_list = []
+	broken_list = {}
 	tmp_idx = 0
 	for current_dir, dirs, files in os.walk(root):
 		for dir in dirs:
@@ -394,6 +402,9 @@ if __name__ == '__main__':
 				dir = '/'.join(path.split('/')[1:])
 				e = process_directory(path.split('/')[0],dir)
 				if e:
+					if e['pdf_broken']:
+						broken_list[dir] = e
+						continue
 					if e['volume'] and e['number']:
 						matches = re.findall(r'volume\/(\d.)\/(\d)',dir)
 						if matches:
@@ -419,6 +430,35 @@ if __name__ == '__main__':
 						database_yearly[year] = [dir]
 					database[dir] = e | { 'tmp_idx' : tmp_idx }
 					tmp_idx += 1
+	#
+	if broken_list.keys():
+		print( '--------- Papers with broken PDF ----------' )
+		for dir,e in broken_list.items():
+			print( f'title: {e["title"]}')
+			print( f'doi: {e["doi"]}')
+			print( f'journal: {e["journal"]}')
+			print( f'volume: {e["volume"]}')
+			print( f'number: {e["number"]}')
+			print( f'year: {e["year"]}')
+			print( f'path: {os.path.join(root,dir)}' )
+			print( '----')
+		answer = input('Fix? [yes/no/delete]: ')
+		if answer == 'yes':
+			for dir,e in broken_list.items():
+				print( f'title: {e["title"]}')
+				url = input('Enter PDF url: ')
+				if url:
+					headers = {
+						"User-Agent" : "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "+
+						"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+					}
+					options = f'--user-agent="{headers["User-Agent"]}"'
+					subprocess.call(f'wget {options} -O {os.path.join(root,dir,e["pdf"])} {url}',shell=True)
+		elif answer == 'delete':
+			rm_path = os.path.join(root,dir)
+			print( f'Deleting {rm_path}...' )
+			shutil.rmtree(rm_path)
+		sys.exit()
 	#
 	if inconsistent_list:
 		print( '--------- inconsistent papers ----------' )
