@@ -163,6 +163,8 @@ def process_directory( root, dir ):
 					return None
 				if 'session details:' in title.lower():
 					return None
+				if 'research' in title.lower() and 'award' in title.lower():
+					return None
 			else:
 				meta_data = info.open_metadata()
 				if 'dc:title' in meta_data:
@@ -405,9 +407,6 @@ if __name__ == '__main__':
 		print( '--------- inconsistent papers ----------' )
 		for dir in inconsistent_list:
 			print( f'{dir}: volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
-		#
-		if input('Move them to correct directories? [yes/no]') == 'yes':
-			pass
 		sys.exit()
 	#
 	# Duplicates
