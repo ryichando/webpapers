@@ -445,7 +445,10 @@ if __name__ == '__main__':
 		answer = input('Fix? [yes/no/delete]: ')
 		if answer == 'yes':
 			for dir,e in broken_list.items():
-				print( f'title: {e["title"]}')
+				shutil.rmtree(os.path.join(root,dir,"thumbnails"),ignore_errors=True)
+				shutil.rmtree(os.path.join(root,dir,"images"),ignore_errors=True)
+				print( f'path: {dir}' )
+				print( f'title: {e["title"]}' )
 				url = input('Enter PDF url: ')
 				if url:
 					headers = {
@@ -454,8 +457,8 @@ if __name__ == '__main__':
 					}
 					options = f'--user-agent="{headers["User-Agent"]}"'
 					subprocess.call(f'wget {options} -O {os.path.join(root,dir,e["pdf"])} {url}',shell=True)
-					shutil.rmtree(os.path.join(root,dir,"thumbnails"),ignore_errors=True)
-					shutil.rmtree(os.path.join(root,dir,"images"),ignore_errors=True)
+				else:
+					print('Skipping...')
 
 		elif answer == 'delete':
 			rm_path = os.path.join(root,dir)
