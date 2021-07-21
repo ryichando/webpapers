@@ -500,7 +500,7 @@ if __name__ == '__main__':
 	if check_duplicates:
 		#
 		print( 'Checking for paper duplicates...' )
-		identical_papers = []
+		duplicate_papers = []
 		for key_0,entry_0 in database.items():
 			for key_1,entry_1 in database.items():
 				if entry_0['tmp_idx'] < entry_1['tmp_idx']:
@@ -510,14 +510,14 @@ if __name__ == '__main__':
 					if entry_0['title'] and entry_1['title']:
 						idential = idential or entry_0['title'].lower() == entry_1['title'].lower()
 					if idential:
-						identical_papers.append((key_0,key_1))
+						duplicate_papers.append((key_0,key_1))
 		#
-		if identical_papers:
+		if duplicate_papers:
 			delete_dir_key = None
-			num_remainings = len(identical_papers)
+			num_remainings = len(duplicate_papers)
 			print( f'---------{num_remainings} duplicate(s) found ---------')
 			remove_keys = []
-			for key_0,key_1 in identical_papers:
+			for key_0,key_1 in duplicate_papers:
 				if key_0 in remove_keys or key_1 in remove_keys:
 					num_remainings -= 1
 					print( f'{num_remainings} duplicates remaining...' )
