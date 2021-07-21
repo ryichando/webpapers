@@ -394,9 +394,16 @@ if __name__ == '__main__':
 								pass
 							else:
 								inconsistent_list.append(dir)
-								print( 'WARNING: Inconsistent volume and number!!' )
+								print( 'WARNING: Inconsistent volume and number!' )
 					#
 					year = e['year']
+					matches = re.findall(r'year\/(\d\d\d\d)',dir)
+					if matches:
+						_year = int(matches[0])
+						if not year == _year:
+							inconsistent_list.append(dir)
+							print( f'WARNING: Inconsistent year! ({_year} != {year})' )
+					#
 					if year in database_yearly.keys():
 						database_yearly[year].append(dir)
 					else:
@@ -406,7 +413,7 @@ if __name__ == '__main__':
 	if inconsistent_list:
 		print( '--------- inconsistent papers ----------' )
 		for dir in inconsistent_list:
-			print( f'{dir}: volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
+			print( f'{dir}: year = {database[dir]["year"]} volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
 		sys.exit()
 	#
 	# Duplicates
