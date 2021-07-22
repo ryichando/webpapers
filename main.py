@@ -177,6 +177,7 @@ def process_directory( root, dir ):
 				if 'research' in title.lower() and 'award' in title.lower():
 					return None
 			else:
+				info = pikepdf.open(os.path.join(root,dir,pdf))
 				meta_data = info.open_metadata()
 				if 'dc:title' in meta_data:
 					title = info.open_metadata()['dc:title']
@@ -211,7 +212,7 @@ def process_directory( root, dir ):
 		#
 		# List files and videos
 		if not file.startswith('.'):
-			if not file in ['thumbnails',pdf,'images','converted','analysis','info.json','words.js'] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
+			if not file in ignore_files+[pdf] and not file.endswith('.bib') and not os.path.splitext(file)[1] in video_types:
 				files.append(file)
 			if os.path.splitext(file)[1] in video_types:
 				if os.path.exists(mkpath(root,dir)+f'/converted/{file}.mp4'):
@@ -326,6 +327,10 @@ def asciify( str ):
 	return str.encode("ascii","ignore").decode()
 #
 if __name__ == '__main__':
+	#
+	# Global variables
+	merge_always = None
+	ignore_files = ['thumbnails','images','converted','analysis','info.json','words.js']
 	#
 	# Parse arguments
 	parser = argparse.ArgumentParser()
@@ -514,6 +519,44 @@ if __name__ == '__main__':
 		#
 		if duplicate_papers:
 			delete_dir_key = None
+			#
+			def merge_files( key_from, key_to ):
+				files_to_merge = []
+				global merge_always
+				if merge_always == False:
+					return
+				for file in os.listdir(os.path.join(root,key_from)):
+					if not file.endswith('.bib') and file not in ignore_files:
+						if file != database[key_from]['pdf'] and not os.path.exists(os.path.join(root,key_to,file)):
+							files_to_merge.append(file)
+				if files_to_merge:
+					print( f'Files not found in dest: {files_to_merge}')
+					do_merge = False
+					if merge_always == True:
+						do_merge = True
+					elif merge_always == False:
+						do_merge = False
+					else:
+						for file in files_to_merge:
+							print( f'"{os.path.join(root,key_from,file)}" -> "{os.path.join(root,key_to,file)}"')
+						print('')
+						answer = input('Move them? [yes/no/yes_always/no_always]: ')
+						if answer == 'yes':
+							do_merge = True
+						elif answer == 'yes_always':
+							do_merge = True
+							merge_always = True
+						elif answer == 'no_always':
+							do_merge = False
+							merge_always = False
+					if do_merge:
+						print( 'Moving...')
+						for file in files_to_merge:
+							from_path = os.path.join(root,key_from,file)
+							to_path = os.path.join(root,key_to,file)
+							print( f'"{from_path}" -> "{to_path}"')
+							shutil.move(from_path,to_path)
+			#
 			num_remainings = len(duplicate_papers)
 			print( f'---------{num_remainings} duplicate(s) found ---------')
 			remove_keys = []
@@ -531,10 +574,12 @@ if __name__ == '__main__':
 				while True:
 					if delete_dir_key:
 						if delete_dir_key in key_0:
+							merge_files(key_0,key_1)
 							print( f'Removing ({key_0})...' )
 							shutil.rmtree(os.path.join(root,key_0))
 							remove_keys.append(key_0)
 						elif delete_dir_key in key_1:
+							merge_files(key_1,key_0)
 							print( f'Removing ({key_1})...' )
 							shutil.rmtree(os.path.join(root,key_1))
 							remove_keys.append(key_1)
@@ -542,16 +587,19 @@ if __name__ == '__main__':
 							print( 'Skipping...' )
 						break
 					else:
+						print('')
 						choice = int(input('Remove? [abord 0] [left 1] [right 2] [neither 3] [both 4] [special 5]: '))
 						if choice == 0:
 							print( 'Abording.' )
 							sys.exit()
 						elif choice == 1:
+							merge_files(key_0,key_1)
 							print( f'Removing left... ({key_0})' )
 							shutil.rmtree(os.path.join(root,key_0))
 							remove_keys.append(key_0)
 							break
 						elif choice == 2:
+							merge_files(key_1,key_0)
 							print( f'Removing right... ({key_1})' )
 							shutil.rmtree(os.path.join(root,key_1))
 							remove_keys.append(key_1)
