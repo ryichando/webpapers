@@ -222,6 +222,14 @@
 							`<div class="badge badge-pill badge-light border border-${badge_color}" id="link-badge">`+
 							`<a href="${dir}" ${text_color} target="_blank" id="link">${file_name}</a>`+'</div>'
 						//
+						// [DOI]
+						if( paper['doi'] ) {
+							if( files_html ) files_html += ' ';
+							files_html +=
+							'<div class="badge badge-pill badge-light border border-primary" id="link-badge">'+
+							`<a href="https://doi.org/${paper['doi']}" target="_blank" id="link">DOI</a>`+'</div>'
+						}
+						//
 						// [Images]
 						if( paper['image_page'] ) {
 							if( files_html ) files_html += ' ';
