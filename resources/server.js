@@ -1,6 +1,4 @@
 //
-// npm install express moment winston winston-daily-rotate-file
-//
 let vm = require('vm');
 let fs = require('fs');
 let express = require('express')
@@ -8,7 +6,7 @@ let moment = require('moment')
 let app = express()
 //
 // installs:
-// npm install express moment winston winston-daily-rotate-file
+// npm install --save-dev express moment winston winston-daily-rotate-file
 //
 // https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
 //
