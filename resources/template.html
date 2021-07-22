@@ -203,7 +203,7 @@
 						// file
 						for (const file of paper['files']) {
 							if( files_html ) files_html += ' ';
-							'<div class="badge badge-pill badge-light border border-primary" id="link-badge">'+
+							files_html += '<div class="badge badge-pill badge-light border border-primary" id="link-badge">'+
 							`<a href="${dir+'/'+file}" target="_blank" id="link">${file.split('/').pop()}</a>`+'</div>'
 						}
 						//

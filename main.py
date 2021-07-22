@@ -139,16 +139,10 @@ def process_directory( root, dir ):
 					result = subprocess.check_output(cmd.split())
 					if '[STREAM]' in str(result) and not 'codec_name=unknown' in str(result):
 						if key == '.mp4':
-							if 'h264' in str(result):
-								print( f'{root}/{dir}/{file} has codec h264' )
-							else:
-								print( f'{root}/{dir}/{file} does not have codec h264' )
+							if not 'h264' in str(result):
 								convert_flag = True
 						else:
-							print( f'{root}/{dir}/{file} is not mp4' )
 							convert_flag = True
-					else:
-						print( f'{root}/{dir}/{file} does not have any video stream' )
 					break
 			#
 			if convert_flag:
