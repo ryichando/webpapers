@@ -115,7 +115,7 @@
 				//
 				clear();
 				if ( server_side_search && enable_search ) {
-					$.get(`${server_url}?token=${token}&ping=1`).done(function(data,status) {
+					$.get(`query?token=${token}&ping=1`).done(function(data,status) {
 						set_status(data,'info');
 					}).fail(function() {
 						set_status('Server is offline','danger');
@@ -207,20 +207,13 @@
 							`<a href="${dir+'/'+file}" target="_blank" id="link">${file.split('/').pop()}</a>`+'</div>'
 						}
 						//
-						// [Files]
+						// [key]
 						if( files_html ) files_html += ' ';
 						if( show_key ) {
-							file_name = dir;
-							badge_color = 'danger';
-							text_color = 'class="text-danger"';
-						} else {
-							file_name = 'Files';
-							badge_color = 'primary';
-							text_color = '';
+							files_html += 
+								`<div class="badge badge-pill badge-light border border-danger" id="link-badge">`+
+								`<a href="${dir}" class="text-danger" target="_blank" id="link">${dir}</a>`+'</div>'
 						}
-						files_html += 
-							`<div class="badge badge-pill badge-light border border-${badge_color}" id="link-badge">`+
-							`<a href="${dir}" ${text_color} target="_blank" id="link">${file_name}</a>`+'</div>'
 						//
 						// [DOI]
 						if( paper['doi'] ) {
@@ -273,7 +266,7 @@
 					document.getElementById("link-badge").hidden = false;
 					document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${keywords.join()}`;
 					if( server_side_search ) {
-						const url = `${server_url}?token=${token}&array=${keywords.join()}`;
+						const url = `query?token=${token}&array=${keywords.join()}`;
 						let remaining_data = '';
 						// https://stackoverflow.com/questions/6789703/how-to-write-javascript-in-client-side-to-receive-and-parse-chunked-response-i
 						fetch(url).then(function (response) {

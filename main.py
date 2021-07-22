@@ -359,7 +359,6 @@ if __name__ == '__main__':
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
 	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
 	server_port = config['DEFAULT']['server_port']
-	server_url = config['DEFAULT']['server_url'].replace('{server_port}',str(server_port))
 	num_max_search_hit = int(config['DEFAULT']['num_max_search_hit'])
 	show_all = config['DEFAULT']['show_all'] == 'yes'
 	word_window_size = int(config['DEFAULT']['word_window_size'])

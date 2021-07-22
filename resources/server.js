@@ -1,16 +1,18 @@
 //
 // npm install express moment winston winston-daily-rotate-file
 //
-const vm = require('vm');
-const fs = require('fs');
-const express = require('express')
-const moment = require('moment')
-const app = express()
+let vm = require('vm');
+let fs = require('fs');
+let express = require('express')
+let moment = require('moment')
+let app = express()
 //
 // installs:
 // npm install express moment winston winston-daily-rotate-file
 //
 // https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
+//
+app.use(express.static(__dirname));
 let winston = require('winston');
 require('winston-daily-rotate-file');
 let transport = new (winston.transports.DailyRotateFile)({
@@ -44,7 +46,7 @@ import_js('./data.js');
 import_js('./config.js')
 import_js('./resources/search.js');
 //
-app.get('/', (req, res) => {
+app.get('/query', (req, res) => {
 	res.header('Access-Control-Allow-Origin','*');
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
 	if( ! req.query.token ) {
@@ -81,5 +83,5 @@ app.get('/', (req, res) => {
 });
 //
 app.listen(server_port, () => {
-	print(`server listening at ${server_url}`)
+	print(`server listening at port ${server_port}`)
 });
