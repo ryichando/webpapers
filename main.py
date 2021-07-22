@@ -85,6 +85,16 @@ def safe_cast(val, to_type, default=None):
 	except (ValueError, TypeError):
 		return default
 #
+def is_paper_directory( dirpath ):
+	pdf = None
+	bib = None
+	for file in os.listdir(dirpath):
+		if file.endswith('.pdf'):
+			pdf = file
+		if file.endswith('.bib'):
+			bib = file
+	return bib and pdf
+#
 def process_directory( root, dir ):
 	#
 	# Information list
@@ -116,8 +126,6 @@ def process_directory( root, dir ):
 	#
 	if not check_valid_pdf(mkpath(root,dir,pdf)):
 		pdf_broken = True
-	#
-	print(f'Processing {dir}...')
 	#
 	for file in os.listdir(mkpath(root,dir)):
 		#
@@ -408,42 +416,50 @@ if __name__ == '__main__':
 	database_yearly = {}
 	inconsistent_list = []
 	broken_list = {}
+	paper_directories = []
 	tmp_idx = 0
 	for current_dir, dirs, files in os.walk(root):
 		for dir in dirs:
-			if not dir in ['__pycache__',resource_dir,'images','converted','thumbnails']:
-				path = current_dir+'/'+dir
-				dir = '/'.join(path.split('/')[1:])
-				e = process_directory(path.split('/')[0],dir)
-				if e:
-					if e['pdf_broken']:
-						broken_list[dir] = e
-						continue
-					if e['volume'] and e['number']:
-						matches = re.findall(r'volume\/(\d.)\/(\d)',dir)
-						if matches:
-							volume = int(matches[0][0])
-							number = int(matches[0][1])
-							if volume == e['volume'] and number == e['number']:
-								pass
-							else:
-								inconsistent_list.append(dir)
-								print( 'WARNING: Inconsistent volume and number!' )
-					#
-					year = e['year']
-					matches = re.findall(r'year\/(\d\d\d\d)',dir)
+			if is_paper_directory(os.path.join(current_dir,dir)):
+				paper_directories.append((current_dir,dir))
+				print(f'Found {len(paper_directories)} directories.',end='\r')
+	#
+	print('')
+	print('Processing...')
+	for (current_dir,dir) in tqdm(paper_directories):
+		if not dir in ['__pycache__',resource_dir,'images','converted','thumbnails']:
+			path = current_dir+'/'+dir
+			dir = '/'.join(path.split('/')[1:])
+			e = process_directory(path.split('/')[0],dir)
+			if e:
+				if e['pdf_broken']:
+					broken_list[dir] = e
+					continue
+				if e['volume'] and e['number']:
+					matches = re.findall(r'volume\/(\d.)\/(\d)',dir)
 					if matches:
-						_year = int(matches[0])
-						if not year == _year:
+						volume = int(matches[0][0])
+						number = int(matches[0][1])
+						if volume == e['volume'] and number == e['number']:
+							pass
+						else:
 							inconsistent_list.append(dir)
-							print( f'WARNING: Inconsistent year! ({_year} != {year})' )
-					#
-					if year in database_yearly.keys():
-						database_yearly[year].append(dir)
-					else:
-						database_yearly[year] = [dir]
-					database[dir] = e | { 'tmp_idx' : tmp_idx }
-					tmp_idx += 1
+							print( 'WARNING: Inconsistent volume and number!' )
+				#
+				year = e['year']
+				matches = re.findall(r'year\/(\d\d\d\d)',dir)
+				if matches:
+					_year = int(matches[0])
+					if not year == _year:
+						inconsistent_list.append(dir)
+						print( f'WARNING: Inconsistent year! ({_year} != {year})' )
+				#
+				if year in database_yearly.keys():
+					database_yearly[year].append(dir)
+				else:
+					database_yearly[year] = [dir]
+				database[dir] = e | { 'tmp_idx' : tmp_idx }
+				tmp_idx += 1
 	#
 	if broken_list.keys():
 		print( '--------- Papers with broken PDF ----------' )
@@ -658,16 +674,19 @@ if __name__ == '__main__':
 		stemmer = nltk.PorterStemmer()
 		#
 		# Extend word dictionary
-		for dir,paper in database.items():
+		print('Extending word dict from abstracts...')
+		abstract_papers = []
+		for _,paper in database.items():
 			if paper['abstract']:
-				print( 'Extending word dict from {} abstract...'.format(dir) )
-				abstract_lines = paper['abstract'].split('\n')
-				for abstract_line in abstract_lines:
-					for _word in asciify(abstract_line).split(' '):
-						for word in remove_special_chars(_word).split('-'):
-							w = word.lower()
-							if w not in word_dictionary:
-								word_dictionary.add(w)
+				abstract_papers.append(paper)
+		for paper in tqdm(abstract_papers):
+			abstract_lines = paper['abstract'].split('\n')
+			for abstract_line in abstract_lines:
+				for _word in asciify(abstract_line).split(' '):
+					for word in remove_special_chars(_word).split('-'):
+						w = word.lower()
+						if w not in word_dictionary:
+							word_dictionary.add(w)
 		#
 		data_0_js = 'data_0 = [\n'
 		data_1_js = 'data_1 = [\n'
