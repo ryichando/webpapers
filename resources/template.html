@@ -207,14 +207,6 @@
 							`<a href="${dir+'/'+file}" target="_blank" id="link">${file.split('/').pop()}</a>`+'</div>'
 						}
 						//
-						// [key]
-						if( files_html ) files_html += ' ';
-						if( show_key ) {
-							files_html += 
-								`<div class="badge badge-pill badge-light border border-danger text-danger" id="link-badge">`+
-								`${dir}`+'</div>'
-						}
-						//
 						// [DOI]
 						if( paper['doi'] ) {
 							if( files_html ) files_html += ' ';
@@ -229,6 +221,14 @@
 							files_html +=
 							'<div class="badge badge-pill badge-light border border-primary" id="link-badge">'+
 							`<a href="${dir+'/'+paper['image_page']}" target="_blank" id="link">Files</a>`+'</div>'
+						}
+						//
+						// [key]
+						if( files_html ) files_html += ' ';
+						if( show_key ) {
+							files_html += 
+								`<div class="badge badge-pill badge-light border border-danger text-danger" id="link-badge">`+
+								`${dir}`+'</div>'
 						}
 						//
 						let files_element = document.createElement('div');
