@@ -556,15 +556,19 @@ if __name__ == '__main__':
 						for file in files_to_merge:
 							print( f'"{os.path.join(root,key_from,file)}" -> "{os.path.join(root,key_to,file)}"')
 						print('')
-						answer = input('Move them? [yes/no/yes_always/no_always]: ')
-						if answer == 'yes':
-							do_merge = True
-						elif answer == 'yes_always':
-							do_merge = True
-							merge_always = True
-						elif answer == 'no_always':
-							do_merge = False
-							merge_always = False
+						while True:
+							answer = input('Move them? [yes/no/yes_always/no_always]: ')
+							if answer == 'yes':
+								do_merge = True
+								break
+							elif answer == 'yes_always':
+								do_merge = True
+								merge_always = True
+								break
+							elif answer == 'no_always':
+								do_merge = False
+								merge_always = False
+								break
 					if do_merge:
 						print( 'Moving...')
 						for file in files_to_merge:
@@ -604,7 +608,14 @@ if __name__ == '__main__':
 						break
 					else:
 						print('')
-						choice = int(input('Remove? [abord 0] [left 1] [right 2] [neither 3] [both 4] [special 5]: '))
+						while True:
+							choice = input('Remove? [abord 0] [left 1] [right 2] [neither 3] [both 4] [special 5]: ')
+							try:
+								choice = int(choice)
+							except:
+								continue
+							if choice >= 0 and choice <= 5:
+								break
 						if choice == 0:
 							print( 'Abording.' )
 							sys.exit()
