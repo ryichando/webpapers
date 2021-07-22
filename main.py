@@ -672,11 +672,11 @@ if __name__ == '__main__':
 		data_0_js = 'data_0 = [\n'
 		data_1_js = 'data_1 = [\n'
 		idx = 0
-		for dir,paper in database.items():
+		print( 'Analyzing...' )
+		for dir,paper in tqdm(database.items()):
 			#
 			year = paper['year']
 			pdf = paper['pdf']
-			print( 'Analyzing {}...'.format(dir))
 			lines = pdfdump.dump(mkpath(root,dir,pdf))
 			#
 			indices = []
