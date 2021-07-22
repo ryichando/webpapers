@@ -7,6 +7,8 @@ import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
 from PIL import Image
 from pybtex.database import parse_file
 from shlex import quote
+from tqdm import tqdm
+import pprint as pp
 #
 def replace_text_by_dictionary( text, dict ):
 	if dict:
@@ -506,7 +508,7 @@ if __name__ == '__main__':
 		#
 		print( 'Checking for paper duplicates...' )
 		duplicate_papers = []
-		for key_0,entry_0 in database.items():
+		for key_0,entry_0 in tqdm(database.items()):
 			for key_1,entry_1 in database.items():
 				if entry_0['tmp_idx'] < entry_1['tmp_idx']:
 					idential = False
@@ -531,6 +533,10 @@ if __name__ == '__main__':
 							files_to_merge.append(file)
 				if files_to_merge:
 					print( f'Files not found in dest: {files_to_merge}')
+					print( f'---- List of files in {key_from} ----' )
+					pp.pprint(os.listdir(os.path.join(root,key_from)))
+					print( f'---- List of files in {key_to} ----' )
+					pp.pprint(os.listdir(os.path.join(root,key_to)))
 					do_merge = False
 					if merge_always == True:
 						do_merge = True
