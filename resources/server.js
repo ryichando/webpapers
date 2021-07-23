@@ -10,7 +10,7 @@ let app = express()
 // npm install --save-dev express moment winston winston-daily-rotate-file serve-index
 //
 app.get("/", (req, res) => {
-	res.status(301).redirect("/index.html")
+	res.status(301).redirect(req.url+'index.html')
 });
 app.use('/',express.static('/'),serveIndex(__dirname,{'icons': true}));
 app.use(express.static(__dirname));
