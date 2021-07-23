@@ -3,14 +3,19 @@ let vm = require('vm');
 let fs = require('fs');
 let express = require('express')
 let moment = require('moment')
+let serveIndex = require('serve-index')
 let app = express()
 //
 // installs:
-// npm install --save-dev express moment winston winston-daily-rotate-file
+// npm install --save-dev express moment winston winston-daily-rotate-file serve-index
+//
+app.get("/", (req, res) => {
+	res.status(301).redirect("/index.html")
+});
+app.use('/',express.static('/'),serveIndex(__dirname,{'icons': true}));
+app.use(express.static(__dirname));
 //
 // https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
-//
-app.use(express.static(__dirname));
 let winston = require('winston');
 require('winston-daily-rotate-file');
 let transport = new (winston.transports.DailyRotateFile)({

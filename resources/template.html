@@ -226,8 +226,8 @@
 						// [key]
 						if( files_html ) files_html += ' ';
 						files_html += 
-							`<div class="badge badge-pill badge-light border border-danger text-danger" id="link-badge">`+
-							`${dir}`+'</div>'
+							`<div class="badge badge-pill badge-light border border-danger" id="link-badge">`+
+							`<a class="text-danger" href="${dir}/">${dir}</a>`+'</div>'
 						//
 						let files_element = document.createElement('div');
 						files_element.innerHTML = files_html;
