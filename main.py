@@ -2,8 +2,11 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
+# Build Library:
+# > docker run -u $UID:$GID -v ${PWD}:/root -ti --rm webpapers papers
+#
 # Server Mode:
-# > docker run -u $(id -u):$(id -g) -v ${PWD}:/root -p 3600:3600 -ti --rm webpapers --server papers
+# > docker run -u $UID:$GID -v ${PWD}:/root -p 3600:3600 -ti --rm webpapers --server papers
 #
 import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal
 import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
