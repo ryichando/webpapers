@@ -12,7 +12,8 @@ let app = express()
 app.get("/", (req, res) => {
 	res.sendFile(__dirname+'/index.html');
 });
-app.use('/',serveIndex(__dirname,{'icons': true}));
+app.use('/',express.static('/'),serveIndex(__dirname,{'icons': true}));
+app.use(express.static(__dirname));
 //
 // https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
 let winston = require('winston');
