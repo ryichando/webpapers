@@ -81,5 +81,5 @@ app.get('/query', (req, res) => {
 });
 //
 app.listen(server_port, () => {
-	print(`server listening at port ${server_port}`)
+	print(`server listening at http://localhost:${server_port}`)
 });
