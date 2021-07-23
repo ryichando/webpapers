@@ -71,6 +71,6 @@ realtime_search = no
 # Cleaning
 
 ```bash
-docker run -v ${PWD}:/root --rm webpapers papers --clean
+docker run -v ${PWD}:/root --rm webpapers papers --clean all
 ```
 to clean generated files.
