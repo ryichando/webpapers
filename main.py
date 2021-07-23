@@ -242,7 +242,6 @@ def process_directory( root, dir ):
 				create_flag = True
 				break
 		if create_flag:
-			print( "Generating thumbnails for {}...".format(dir))
 			os.makedirs(mkpath(root,dir,'thumbnails'),exist_ok=True)
 			run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(root,dir)),thumbnail_page_count,quote(pdf)))
 			for i in range(thumbnail_page_count):
@@ -271,7 +270,6 @@ def process_directory( root, dir ):
 		# Extract images from PDF
 		if extract_images:
 			if not os.path.exists(mkpath(root,dir,'images')) and len(info.pages) <= image_page_limit:
-				print( f"Extracting images for {dir}..." )
 				os.mkdir(mkpath(root,dir,'images'))
 				run_command("pdfimages -j {0}/{1} {0}/images/images".format(quote(mkpath(root,dir)),quote(pdf)))
 				run_command("mogrify -format jpg -path {0}/images {0}/images/*".format(quote(mkpath(root,dir))))
