@@ -50,7 +50,6 @@ import_js('./config.js')
 import_js('./resources/search.js');
 //
 app.get('/query', (req, res) => {
-	res.header('Access-Control-Allow-Origin','*');
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
 	if( ! req.query.token ) {
 		res.status(500)
