@@ -2,7 +2,10 @@
 # Author: Ryoichi Ando (https://ryichando.graphics)
 # License: CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)
 #
-import os, sys, configparser, subprocess, json, argparse, latexcodec, time
+# Server Mode:
+# > docker run -u $(id -u):$(id -g) -v ${PWD}:/root -p 3600:3600 -ti --rm webpapers --server papers
+#
+import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal
 import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
 from PIL import Image
 from pybtex.database import parse_file
@@ -330,6 +333,11 @@ def process_directory( root, dir ):
 def asciify( str ):
 	return str.encode("ascii","ignore").decode()
 #
+def signal_handler_server(signal, frame):
+	print('')
+	print('Stopping the server..')
+	sys.exit(0)
+#
 if __name__ == '__main__':
 	#
 	# Global variables
@@ -340,8 +348,15 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('root', help='Root directory')
 	parser.add_argument('--clean', help='Clean flag')
+	parser.add_argument('--server', action='store_true')
 	args = parser.parse_args()
 	root = args.root
+	#
+	if args.server:
+		print( 'Running server mode...' )
+		signal.signal(signal.SIGINT, signal_handler_server)
+		subprocess.call('node server.js',shell=True,cwd=root)
+		sys.exit()
 	#
 	# Load parameters
 	config = configparser.ConfigParser()
