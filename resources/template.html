@@ -225,11 +225,9 @@
 						//
 						// [key]
 						if( files_html ) files_html += ' ';
-						if( show_key ) {
-							files_html += 
-								`<div class="badge badge-pill badge-light border border-danger text-danger" id="link-badge">`+
-								`${dir}`+'</div>'
-						}
+						files_html += 
+							`<div class="badge badge-pill badge-light border border-danger text-danger" id="link-badge">`+
+							`${dir}`+'</div>'
 						//
 						let files_element = document.createElement('div');
 						files_element.innerHTML = files_html;
