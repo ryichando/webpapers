@@ -1,0 +1,10 @@
+.*
+papers/*
+!papers/config.ini
+!papers/journal.txt
+!papers/paperlist.md
+!.gitignore
+node_modules
+__pycache__
+tmp
+log
