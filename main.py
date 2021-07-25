@@ -21,15 +21,15 @@ import pprint as pp
 logfile_name = 'webpapers.log'
 date_strftime_format = '%d-%b-%y %H:%M:%S'
 logging.basicConfig(
+	filename=logfile_name,
 	level=logging.INFO,
 	format='<%(asctime)s> %(levelname)s: %(message)s',
 	datefmt='%d-%b-%y %H:%M:%S',
-	handlers=[
-		logging.FileHandler(logfile_name),
-		logging.StreamHandler()
-	]
 )
 logger = logging.getLogger(__name__)
+def _print( text ):
+	logger.info(text)
+	print(text)
 #
 def replace_text_by_dictionary( text, dict ):
 	if dict:
@@ -360,7 +360,7 @@ def asciify( str ):
 #
 def signal_handler_server(signal, frame):
 	print('')
-	logger.info('Stopping..')
+	_print('Stopping..')
 	sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler_server)
 #
@@ -379,10 +379,10 @@ if __name__ == '__main__':
 	root = args.root
 	#
 	if args.server:
-		logger.info( 'Running server mode...' )
+		_print( 'Running server mode...' )
 		gb_mem = virtual_memory().total / 1024 / 1024 / 1024
 		using_mb = int(0.85 * gb_mem * 1024)
-		logger.info( f'{"%.2f" % gb_mem} GB memory detected, setting max to {"%.2f" % (using_mb/1024)} GB...' )
+		_print( f'{"%.2f" % gb_mem} GB memory detected, setting max to {"%.2f" % (using_mb/1024)} GB...' )
 		subprocess.call('node server.js',shell=True,cwd=root,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
 		sys.exit()
 	#
@@ -418,7 +418,7 @@ if __name__ == '__main__':
 	#
 	# If the "clean" flag is specified, clean them all
 	if args.clean:
-		logger.info( f'Cleaning...{args.clean}' )
+		_print( f'Cleaning...{args.clean}' )
 		clean_lists = []
 		if args.clean == 'all' or args.clean == 'data':
 			clean_lists.extend(['index.html','data.js','papers.js','config.js'])
@@ -431,16 +431,16 @@ if __name__ == '__main__':
 		#		
 		for dir in os.listdir(root):
 			if dir in ['__pycache__',resource_dir]:
-				logger.info( f'Deleting {root}/{dir}...' )
+				_print( f'Deleting {root}/{dir}...' )
 				shutil.rmtree(root+'/'+dir)
 			elif dir in clean_lists:
 				file = root+'/'+dir
-				logger.info( f'Deleting {file}...')
+				_print( f'Deleting {file}...')
 				os.remove(file)
 		for current_dir, dirs, files in os.walk(root):
 			for dir in dirs:
 				if dir in clean_lists:
-					logger.info(f'Deleting {current_dir}/{dir}...')
+					_print(f'Deleting {current_dir}/{dir}...')
 					shutil.rmtree(current_dir+'/'+dir)
 		sys.exit(0)
 	#
@@ -461,7 +461,7 @@ if __name__ == '__main__':
 				print(f'Found {len(paper_directories)} directories.',end='\r')
 	#
 	print('')
-	logger.info(f'Processing {len(paper_directories)} directories...')
+	_print(f'Processing {len(paper_directories)} directories...')
 	for (current_dir,dir) in tqdm(paper_directories):
 		if not dir in ['__pycache__',resource_dir,'images','converted','thumbnails']:
 			path = current_dir+'/'+dir
@@ -498,26 +498,26 @@ if __name__ == '__main__':
 				tmp_idx += 1
 	#
 	if broken_list.keys():
-		logger.info( '--------- Papers with broken PDF ----------' )
+		_print( '--------- Papers with broken PDF ----------' )
 		for dir,e in broken_list.items():
-			logger.info( f'title: {e["title"]}')
-			logger.info( f'doi: {e["doi"]}')
-			logger.info( f'journal: {e["journal"]}')
-			logger.info( f'volume: {e["volume"]}')
-			logger.info( f'number: {e["number"]}')
-			logger.info( f'year: {e["year"]}')
-			logger.info( f'path: {os.path.join(root,dir)}' )
-			logger.info( '----')
+			_print( f'title: {e["title"]}')
+			_print( f'doi: {e["doi"]}')
+			_print( f'journal: {e["journal"]}')
+			_print( f'volume: {e["volume"]}')
+			_print( f'number: {e["number"]}')
+			_print( f'year: {e["year"]}')
+			_print( f'path: {os.path.join(root,dir)}' )
+			_print( '----')
 		#
 		num_remainings = len(broken_list.keys())
-		logger.info( f'{num_remainings} papers' )
+		_print( f'{num_remainings} papers' )
 		if input('Fix? [yes/no]: ') == 'yes':
 			for dir,e in broken_list.items():
 				shutil.rmtree(os.path.join(root,dir,"thumbnails"),ignore_errors=True)
 				shutil.rmtree(os.path.join(root,dir,"images"),ignore_errors=True)
 				pdf_path = os.path.join(root,dir,e["pdf"])
-				logger.info( f'title: {e["title"]}' )
-				logger.info( f'path: {pdf_path}' )
+				_print( f'title: {e["title"]}' )
+				_print( f'path: {pdf_path}' )
 				url = input('Enter PDF url: ')
 				if url:
 					headers = {
@@ -530,35 +530,35 @@ if __name__ == '__main__':
 				ask_for_delete = False
 				if os.path.exists(pdf_path):
 					if check_valid_pdf(pdf_path):
-						logger.info( 'Successfully confirmed new PDF' )
+						_print( 'Successfully confirmed new PDF' )
 					else:
-						logger.info( 'PDF now exists but still broken...' )
+						_print( 'PDF now exists but still broken...' )
 						ask_for_delete = True
 				else:
-					logger.info('PDF still does not exist.')
+					_print('PDF still does not exist.')
 					ask_for_delete = True
 				#
 				if ask_for_delete:
 					if input('Delete? [yes/no]: ') == 'yes':
 						rm_path = os.path.join(root,dir)
-						logger.info( f'Deleting {rm_path}...' )
+						_print( f'Deleting {rm_path}...' )
 						shutil.rmtree(rm_path)
 				time.sleep(3)
 				print('')
 				num_remainings -= 1
-				logger.info( f'--- {num_remainings} papers remaining... ---' )
+				_print( f'--- {num_remainings} papers remaining... ---' )
 		sys.exit()
 	#
 	if inconsistent_list:
-		logger.info( '--------- inconsistent papers ----------' )
+		_print( '--------- inconsistent papers ----------' )
 		for dir in inconsistent_list:
-			logger.info( f'{dir}: year = {database[dir]["year"]} volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
+			_print( f'{dir}: year = {database[dir]["year"]} volume = {database[dir]["volume"]} number = {database[dir]["number"]}' )
 		sys.exit()
 	#
 	# Duplicates
 	if check_duplicates:
 		#
-		logger.info( 'Checking for paper duplicates...' )
+		_print( 'Checking for paper duplicates...' )
 		duplicate_papers = []
 		for key_0,entry_0 in tqdm(database.items()):
 			for key_1,entry_1 in database.items():
@@ -584,11 +584,11 @@ if __name__ == '__main__':
 						if file != database[key_from]['pdf'] and not os.path.exists(os.path.join(root,key_to,file)):
 							files_to_merge.append(file)
 				if files_to_merge:
-					logger.info( f'Files not found in dest: {files_to_merge}')
-					logger.info( f'---- List of files in {key_from} ----' )
-					pp.plogger.info(os.listdir(os.path.join(root,key_from)))
-					logger.info( f'---- List of files in {key_to} ----' )
-					pp.plogger.info(os.listdir(os.path.join(root,key_to)))
+					_print( f'Files not found in dest: {files_to_merge}')
+					_print( f'---- List of files in {key_from} ----' )
+					pp.pprint(os.listdir(os.path.join(root,key_from)))
+					_print( f'---- List of files in {key_to} ----' )
+					pp.pprint(os.listdir(os.path.join(root,key_to)))
 					do_merge = False
 					if merge_always == True:
 						do_merge = True
@@ -596,7 +596,7 @@ if __name__ == '__main__':
 						do_merge = False
 					else:
 						for file in files_to_merge:
-							logger.info( f'"{os.path.join(root,key_from,file)}" -> "{os.path.join(root,key_to,file)}"')
+							_print( f'"{os.path.join(root,key_from,file)}" -> "{os.path.join(root,key_to,file)}"')
 						print('')
 						while True:
 							answer = input('Move them? [yes/no/yes_always/no_always]: ')
@@ -612,41 +612,41 @@ if __name__ == '__main__':
 								merge_always = False
 								break
 					if do_merge:
-						logger.info( 'Moving...')
+						_print( 'Moving...')
 						for file in files_to_merge:
 							from_path = os.path.join(root,key_from,file)
 							to_path = os.path.join(root,key_to,file)
-							logger.info( f'"{from_path}" -> "{to_path}"')
+							_print( f'"{from_path}" -> "{to_path}"')
 							shutil.move(from_path,to_path)
 			#
 			num_remainings = len(duplicate_papers)
-			logger.info( f'---------{num_remainings} duplicate(s) found ---------')
+			_print( f'---------{num_remainings} duplicate(s) found ---------')
 			remove_keys = []
 			for key_0,key_1 in duplicate_papers:
 				if key_0 in remove_keys or key_1 in remove_keys:
 					num_remainings -= 1
-					logger.info( f'{num_remainings} duplicates remaining...' )
+					_print( f'{num_remainings} duplicates remaining...' )
 					continue
-				logger.info( '' )
-				logger.info( f'"{key_0}" <==> "{key_1}"')
+				_print( '' )
+				_print( f'"{key_0}" <==> "{key_1}"')
 				if 'title' in database[key_0] and 'title' in database[key_1]:
-					logger.info( f'{database[key_0]["title"]} <==> {database[key_1]["title"]}' )
+					_print( f'{database[key_0]["title"]} <==> {database[key_1]["title"]}' )
 				if 'doi' in database[key_0] and 'doi' in database[key_1]:
-					logger.info( f'{database[key_0]["doi"]} <==> {database[key_1]["doi"]}' )
+					_print( f'{database[key_0]["doi"]} <==> {database[key_1]["doi"]}' )
 				while True:
 					if delete_dir_key:
 						if delete_dir_key in key_0:
 							merge_files(key_0,key_1)
-							logger.info( f'Removing ({key_0})...' )
+							_print( f'Removing ({key_0})...' )
 							shutil.rmtree(os.path.join(root,key_0))
 							remove_keys.append(key_0)
 						elif delete_dir_key in key_1:
 							merge_files(key_1,key_0)
-							logger.info( f'Removing ({key_1})...' )
+							_print( f'Removing ({key_1})...' )
 							shutil.rmtree(os.path.join(root,key_1))
 							remove_keys.append(key_1)
 						else:
-							logger.info( 'Skipping...' )
+							_print( 'Skipping...' )
 						break
 					else:
 						print('')
@@ -659,25 +659,25 @@ if __name__ == '__main__':
 							if choice >= 0 and choice <= 5:
 								break
 						if choice == 0:
-							logger.info( 'Abording.' )
+							_print( 'Abording.' )
 							sys.exit()
 						elif choice == 1:
 							merge_files(key_0,key_1)
-							logger.info( f'Removing left... ({key_0})' )
+							_print( f'Removing left... ({key_0})' )
 							shutil.rmtree(os.path.join(root,key_0))
 							remove_keys.append(key_0)
 							break
 						elif choice == 2:
 							merge_files(key_1,key_0)
-							logger.info( f'Removing right... ({key_1})' )
+							_print( f'Removing right... ({key_1})' )
 							shutil.rmtree(os.path.join(root,key_1))
 							remove_keys.append(key_1)
 							break
 						elif choice == 3:
-							logger.info( 'Skipping...' )
+							_print( 'Skipping...' )
 							break
 						elif choice == 4:
-							logger.info( f'Removing both... ({key_0},{key_1})' )
+							_print( f'Removing both... ({key_0},{key_1})' )
 							shutil.rmtree(os.path.join(root,key_0))
 							shutil.rmtree(os.path.join(root,key_1))
 							remove_keys.append(key_0)
@@ -685,14 +685,14 @@ if __name__ == '__main__':
 						elif choice == 5:
 							delete_dir_key = input('Enter a name of portion of path that will be always chosen to delete: ')
 							if delete_dir_key:
-								logger.info( 'set '+delete_dir_key )
+								_print( 'set '+delete_dir_key )
 								continue
 							else:
-								logger.info( 'Not set. Skipping...' )
+								_print( 'Not set. Skipping...' )
 								break
 				num_remainings -= 1
-				logger.info( '' )
-				logger.info( f'{num_remainings} duplicates remaining...' )
+				_print( '' )
+				_print( f'{num_remainings} duplicates remaining...' )
 			for key in remove_keys:
 				del database[key]
 	#
@@ -721,7 +721,7 @@ if __name__ == '__main__':
 		stemmer = nltk.PorterStemmer()
 		#
 		# Extend word dictionary
-		logger.info('Extending word dict from abstracts...')
+		_print('Extending word dict from abstracts...')
 		abstract_papers = []
 		for _,paper in database.items():
 			if paper['abstract']:
@@ -738,7 +738,7 @@ if __name__ == '__main__':
 		data_0_js = 'data_0 = [\n'
 		data_1_js = 'data_1 = [\n'
 		idx = 0
-		logger.info( 'Analyzing...' )
+		_print( 'Analyzing...' )
 		for dir,paper in tqdm(database.items()):
 			#
 			year = paper['year']
