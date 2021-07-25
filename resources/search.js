@@ -179,15 +179,17 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				}
 				//
 				if( keywords_dict['key'].length ) {
-					let flag = false;
+					let flag = true;
 					for (const word of keywords_dict['key'] ) {
-						if( dir.indexOf(word) >= 0 ) {
-							flag = true;
-							show_key = true;
+						if( dir.indexOf(word) < 0 ) {
+							flag = false;
 							break;
 						}
 					}
 					paper_pass.push(flag);
+					if( flag ) {
+						show_key = true;
+					}
 				}
 				//
 				if( keywords_dict['year'].length ) {
