@@ -10,6 +10,7 @@
 #
 import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal
 import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
+from psutil import virtual_memory
 from PIL import Image
 from pybtex.database import parse_file
 from shlex import quote
@@ -361,7 +362,10 @@ if __name__ == '__main__':
 	#
 	if args.server:
 		print( 'Running server mode...' )
-		subprocess.call('node server.js',shell=True,cwd=root)
+		gb_mem = virtual_memory().total / 1024 / 1024 / 1024
+		using_mb = int(0.85 * gb_mem * 1024)
+		print( f'Server has {int(gb_mem)} GB memory, using {int(using_mb/1024)} GB...' )
+		subprocess.call('node server.js',shell=True,cwd=root,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
 		sys.exit()
 	#
 	# Load parameters
