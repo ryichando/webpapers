@@ -364,7 +364,7 @@ if __name__ == '__main__':
 		print( 'Running server mode...' )
 		gb_mem = virtual_memory().total / 1024 / 1024 / 1024
 		using_mb = int(0.85 * gb_mem * 1024)
-		print( f'{int(gb_mem)} GB memory detected, setting max to {int(using_mb/1024)} GB...' )
+		print( f'{"%.2f" % gb_mem} GB memory detected, setting max to {"%.2f" % (using_mb/1024)} GB...' )
 		subprocess.call('node server.js',shell=True,cwd=root,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
 		sys.exit()
 	#
