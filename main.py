@@ -19,12 +19,11 @@ import pprint as pp
 #
 # Set logging
 logfile_name = 'webpapers.log'
-date_strftime_format = '%d-%b-%y %H:%M:%S'
 logging.basicConfig(
 	filename=logfile_name,
 	level=logging.INFO,
 	format='<%(asctime)s> %(levelname)s: %(message)s',
-	datefmt='%d-%b-%y %H:%M:%S',
+	datefmt='%d-%b-%y %H:%M:%S %Z',
 )
 logger = logging.getLogger(__name__)
 def _print( text ):
