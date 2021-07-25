@@ -6,7 +6,7 @@ RUN apt-get -y install ffmpeg poppler-utils nodejs npm
 ENV TERM xterm
 
 ENV PYTHONDONTWRITEBYTECODE 1
-RUN pip install unidecode pillow pybtex pikepdf nltk latexcodec
+RUN pip install unidecode pillow pybtex pikepdf nltk latexcodec psutil
 RUN npm install express moment winston winston-daily-rotate-file serve-index
 
 WORKDIR /root

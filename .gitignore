@@ -1,4 +1,5 @@
 .*
+*.log
 papers/*
 !papers/config.ini
 !papers/journal.txt
