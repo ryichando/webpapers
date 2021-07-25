@@ -382,7 +382,7 @@ if __name__ == '__main__':
 		gb_mem = virtual_memory().total / 1024 / 1024 / 1024
 		using_mb = int(0.85 * gb_mem * 1024)
 		_print( f'{"%.2f" % gb_mem} GB memory detected, setting max to {"%.2f" % (using_mb/1024)} GB...' )
-		subprocess.call('node server.js',shell=True,cwd=root,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
+		subprocess.call(f'node server.js {root}',shell=True,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
 		sys.exit()
 	#
 	# Load parameters

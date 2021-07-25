@@ -5,18 +5,21 @@ let express = require('express')
 let moment = require('moment')
 let serveIndex = require('serve-index')
 let app = express()
+let path = require('path');
+const root = process.argv[2];
 //
 // installs:
 // npm install --save-dev express moment winston winston-daily-rotate-file serve-index
 //
-app.get("/", (req, res) => {
-	res.sendFile(__dirname+'/index.html');
+app.get('/'+root+'/', (req, res) => {
+	res.sendFile(path.join(__dirname,root,'index.html'));
 });
-app.use('/',serveIndex(__dirname,{'icons': true}));
-app.use(express.static(__dirname));
+app.use('/'+root+'/',serveIndex(path.join(__dirname,root),{'icons': true}));
+app.use('/'+root+'/',express.static(path.join(__dirname,root)));
 //
 // https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
 let winston = require('winston');
+const { assert } = require('console');
 require('winston-daily-rotate-file');
 let transport = new (winston.transports.DailyRotateFile)({
 	filename: 'logs/server-%DATE%.log',
@@ -32,7 +35,7 @@ let logger = new (winston.createLogger)({
 // https://stackoverflow.com/questions/4481058/load-and-execute-external-js-file-in-node-js-with-access-to-local-variables
 function import_js( path ) {
 	console.log(`Loading ${path}`)
-	const script = new vm.Script(fs.readFileSync(path));
+	const script = new vm.Script(fs.readFileSync(root+'/'+path));
 	script.runInThisContext();
 	return null;
 }
@@ -44,12 +47,12 @@ function print( text ) {
 	logger.info(message);
 }
 //
-import_js('./papers.js');
-import_js('./data.js');
-import_js('./config.js')
-import_js('./resources/search.js');
+import_js('papers.js');
+import_js('data.js');
+import_js('config.js');
+import_js('resources/search.js');
 //
-app.get('/query', (req, res) => {
+app.get('/'+root+'/query', (req, res) => {
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
 	if( ! req.query.token ) {
 		res.status(500)
@@ -85,5 +88,5 @@ app.get('/query', (req, res) => {
 });
 //
 app.listen(server_port, () => {
-	print(`server listening at http://localhost:${server_port}`)
+	print(`server listening at http://localhost:${server_port}/${root}/`)
 });
