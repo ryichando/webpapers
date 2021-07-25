@@ -262,7 +262,8 @@
 				let keywords = $("#keywords-field").val().trim().toLowerCase().split(' ');
 				if( keywords && keywords != "" ) {
 					document.getElementById("link-badge").hidden = false;
-					document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${keywords.join()}`;
+					const _keywords = $("#keywords-field").val().trim().split(' ');
+					document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${_keywords.join()}`;
 					if( server_side_search ) {
 						const url = `query?token=${token}&array=${keywords.join()}`;
 						let remaining_data = '';
