@@ -241,6 +241,11 @@ def process_directory( root, dir ):
 			if not os.path.exists(mkpath(root,dir,thumbnail_name)):
 				create_flag = True
 				break
+			try:
+				Image.open(mkpath(root,dir,thumbnail_name)).verify()
+			except:
+				create_flag = True
+				break
 		if create_flag:
 			os.makedirs(mkpath(root,dir,'thumbnails'),exist_ok=True)
 			run_command('pdftoppm -jpeg -scale-to 680 -f 1 -l {1} {0}/{2} {0}/thumbnails/thumbnail'.format(quote(mkpath(root,dir)),thumbnail_page_count,quote(pdf)))
