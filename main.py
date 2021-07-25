@@ -365,6 +365,8 @@ signal.signal(signal.SIGINT, signal_handler_server)
 #
 if __name__ == '__main__':
 	#
+	logger.info( '--------- Starting up ---------')
+	#
 	# Global variables
 	merge_always = None
 	ignore_files = ['thumbnails','images','converted','analysis','info.json','words.js']
@@ -843,3 +845,4 @@ const papers_yearly = {1};
 	# Copy resources
 	run_command('cp -rf {} {}'.format(resource_dir,root))
 	run_command('cp -f {}/server.js {}'.format(resource_dir,root))
+	logger.info( '--------- Done ---------')
