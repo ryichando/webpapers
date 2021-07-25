@@ -67,7 +67,7 @@ app.get('/'+root+'/query', (req, res) => {
 			res.send('Server is ready');
 			print( `ip: ${ip} ping`);
 		} else if( req.query.array ) {
-			const keywords = req.query.array.split(',');
+			const keywords = req.query.array.split('+');
 			print( `ip: ${ip} keywords: ${keywords}`);
 			const add_year = function ( year, _res ) {
 				_res.write(JSON.stringify(['add_year',year])+'\n');
