@@ -16,20 +16,29 @@ from shlex import quote
 from tqdm import tqdm
 import pprint as pp
 #
+def replace_text_by_dictionary( text, dict ):
+	if dict:
+		for key in dict.keys():
+			if key in text:
+				text = text.replace(key,dict[key])
+		return text
+	else:
+		return text
+#
 def remove_curly_bracket( text ):
-	return text.translate(str.maketrans({
+	return replace_text_by_dictionary(text,{
 		'{' : '',
 		'}' : '',
-	}))
+	})
 #
 def fix_jornal( title ):
-	return remove_curly_bracket(title).translate(str.maketrans(journal_table))
+	return replace_text_by_dictionary(remove_curly_bracket(title),journal_table)
 #
 def run_command( cmd ):
 	subprocess.call(cmd,shell=True)
 #
 def remove_special_chars( text ):
-	return text.translate(str.maketrans({
+	return replace_text_by_dictionary(text,{
 		'{' : '',
 		'}' : '',
 		'(' : '',
@@ -43,7 +52,7 @@ def remove_special_chars( text ):
 		'"' : '',
 		'\'' : '',
 		'&' : '',
-	}))
+	})
 #
 def mkpath(root,dir,file=''):
 	return root+'/'+dir+'/'+file
