@@ -16,29 +16,20 @@ from shlex import quote
 from tqdm import tqdm
 import pprint as pp
 #
-def replace_text_by_dictionary( text, dict ):
-	if dict:
-		for key in dict.keys():
-			if key in text:
-				text = text.replace(key,dict[key])
-		return text
-	else:
-		return text
-#
 def remove_curly_bracket( text ):
-	return replace_text_by_dictionary(text,{
+	return text.translate(str.maketrans({
 		'{' : '',
 		'}' : '',
-	})
+	}))
 #
 def fix_jornal( title ):
-	return replace_text_by_dictionary(remove_curly_bracket(title),journal_table)
+	return remove_curly_bracket(title).translate(str.maketrans(journal_table))
 #
 def run_command( cmd ):
 	subprocess.call(cmd,shell=True)
 #
 def remove_special_chars( text ):
-	return replace_text_by_dictionary(text,{
+	return text.translate(str.maketrans({
 		'{' : '',
 		'}' : '',
 		'(' : '',
@@ -52,7 +43,7 @@ def remove_special_chars( text ):
 		'"' : '',
 		'\'' : '',
 		'&' : '',
-	})
+	}))
 #
 def mkpath(root,dir,file=''):
 	return root+'/'+dir+'/'+file
@@ -341,8 +332,9 @@ def asciify( str ):
 #
 def signal_handler_server(signal, frame):
 	print('')
-	print('Stopping the server..')
+	print('Stopping..')
 	sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler_server)
 #
 if __name__ == '__main__':
 	#
@@ -360,7 +352,6 @@ if __name__ == '__main__':
 	#
 	if args.server:
 		print( 'Running server mode...' )
-		signal.signal(signal.SIGINT, signal_handler_server)
 		subprocess.call('node server.js',shell=True,cwd=root)
 		sys.exit()
 	#
