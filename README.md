@@ -50,7 +50,7 @@ Next, run the following commands
 
 ```bash
 docker build . -t webpapers
-docker run -u $UID:$GID -v ${PWD}:/root -ti --rm webpapers papers
+docker run -u $UID:$GID -v $PWD:/root -ti --rm webpapers papers
 ```
 
 This can take a while depending on how many papers you have. When complete, `index.html` will be generated in the `papers` directory, which you can browse on your favorite web browsers. You may edit `config.ini` in the directory to change settings.
@@ -71,6 +71,6 @@ realtime_search = no
 # Cleaning
 
 ```bash
-docker run -v ${PWD}:/root --rm webpapers papers --clean all
+docker run -v $PWD:/root --rm webpapers papers --clean all
 ```
 to clean generated files.
