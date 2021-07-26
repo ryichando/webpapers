@@ -34,7 +34,7 @@ let winston = require('winston');
 const { assert } = require('console');
 require('winston-daily-rotate-file');
 let transport = new (winston.transports.DailyRotateFile)({
-	filename: 'logs/server-%DATE%.log',
+	filename: path.join(root,'logs','server-%DATE%.log'),
 	datePattern: 'YYYY-MM-DD',
 	level: 'info'
 });

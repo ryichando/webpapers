@@ -136,11 +136,12 @@ if __name__ == '__main__':
 		fields = bibtex.entries[key].fields
 		print( f'title: "{fields["title"]}"' )
 		#
-		# Create directory path and download paper
 		if 'volume' in fields and 'number' in fields:
 			root = os.path.join(args.root,'volume',fields['volume'],fields['number'])
 		elif 'year' in fields:
 			root = os.path.join(args.root,'year',fields['year'])
+		#
+		# Create directory path and download paper
 		download(root,bibtex.entries[key],args.watch_dir)
 	#
 	print( 'Done!' )
