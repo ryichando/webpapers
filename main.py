@@ -211,6 +211,9 @@ def process_directory( root, dir ):
 					logger.info( 'WARNING: title not found ')
 			persons = bib_entry.persons
 			#
+			def normalize_name( name ):
+				return remove_special_chars(name.encode("ascii","ignore").decode('latex'))
+			#
 			if 'author' in persons:
 				authors_str = ''
 				for i,person in enumerate(persons['author']):
@@ -218,18 +221,18 @@ def process_directory( root, dir ):
 						for j,name in enumerate(person.first_names):
 							if j == 0:
 								authors_str += ' '
-							authors_str += remove_curly_bracket(name.encode("ascii","ignore").decode('latex'))
+							authors_str += normalize_name(name)
 					if len(person.middle_names):
 						for name in person.middle_names:
-							authors_str += ' '+remove_curly_bracket(name.encode("ascii","ignore").decode('latex'))
+							authors_str += ' '+normalize_name(name)
 					if len(person.last_names):
 						for name in person.last_names:
-							authors_str += ' '+remove_curly_bracket(name.encode("ascii","ignore").decode('latex'))
+							authors_str += ' '+normalize_name(name)
 					if i < len(persons['author'])-1:
 						authors_str += ' and ' if i == len(persons['author'])-2 else ', '
 				if not authors_str:
 					logger.info( f'WARNING: {dir} is missing author info.')
-				authors = remove_special_chars(authors_str)
+				authors = authors_str
 			#
 			if 'journal' in fields:
 				journal = fix_jornal(fields['journal'].encode("ascii","ignore").decode('latex'))
