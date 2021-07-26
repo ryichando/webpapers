@@ -14,6 +14,12 @@ const root = process.argv[2];
 app.get('/'+root+'/', (req, res) => {
 	res.sendFile(path.join(__dirname,root,'index.html'));
 });
+app.get('/'+root+'/config.js', (req, res) => {
+	fs.readFile(path.join(__dirname,root,'config.js'), 'ascii', (err, data) => {
+		if(err) throw err;
+		res.send(data+'\nconst server_side_search = true;');
+	});
+});
 app.use('/'+root+'/',serveIndex(path.join(__dirname,root),{'icons': true}));
 app.use('/'+root+'/',express.static(path.join(__dirname,root)));
 //

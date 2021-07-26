@@ -401,7 +401,6 @@ if __name__ == '__main__':
 	journal_table_file = config['DEFAULT']['journal_table'] if config.has_option('DEFAULT','journal_table') else None
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
-	server_side_search = config['DEFAULT']['server_side_search'] == 'yes'
 	server_port = config['DEFAULT']['server_port']
 	num_max_search_hit = int(config['DEFAULT']['num_max_search_hit'])
 	show_all = config['DEFAULT']['show_all'] == 'yes'
@@ -836,7 +835,6 @@ const papers_yearly = {1};
 	config_js += f'const word_window_size = {word_window_size};\n'
 	config_js += f'const realtime_search = {"true" if realtime_search else "false"};\n'
 	config_js += f'const page_title = "{page_title}";\n'
-	config_js += f'const server_side_search = {"true" if server_side_search else "false"};\n'
 	config_js += f'const enable_search = {"true" if enable_search else "false"};\n'
 	#
 	with open(root+'/config.js','w') as file:
