@@ -229,7 +229,7 @@ def process_directory( root, dir ):
 						authors_str += ' and ' if i == len(persons['author'])-2 else ', '
 				if not authors_str:
 					logger.info( f'WARNING: {dir} is missing author info.')
-				authors = authors_str
+				authors = remove_special_chars(authors_str)
 			#
 			if 'journal' in fields:
 				journal = fix_jornal(fields['journal'].encode("ascii","ignore").decode('latex'))
