@@ -115,7 +115,7 @@
 				//
 				clear();
 				if ( typeof server_side_search !== 'undefined' && enable_search ) {
-					$.get(`query?token=${token}&ping=1`).done(function(data,status) {
+					$.get(`query?ping=1`).done(function(data,status) {
 						set_status(data,'info');
 					}).fail(function() {
 						set_status('Server is offline','danger');
@@ -265,7 +265,7 @@
 					const _keywords = $("#keywords-field").val().trim().split(' ');
 					document.getElementById("link").href = window.location.href.split('?')[0]+`?query=${_keywords.join('+')}`;
 					if (typeof server_side_search !== 'undefined') {
-						const url = `query?token=${token}&array=${keywords.join('+')}`;
+						const url = `query?keywords=${keywords.join('+')}`;
 						let remaining_data = '';
 						// https://stackoverflow.com/questions/6789703/how-to-write-javascript-in-client-side-to-receive-and-parse-chunked-response-i
 						fetch(url).then(function (response) {
