@@ -4,6 +4,8 @@ from pybtex.database import parse_file, BibliographyData
 from pathlib import Path
 from main import replace_text_by_dictionary
 #
+# python3 fetch.py --bib_path ~/paper_journal.bib --root ~/journal_root --watch_dir ~/Downloads
+#
 def sigint_handler(signal, frame):
 	print('')
 	print('Interrupted')
