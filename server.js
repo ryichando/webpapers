@@ -6,7 +6,9 @@ let moment = require('moment')
 let serveIndex = require('serve-index')
 let app = express()
 let path = require('path');
+//
 const root = process.argv[2];
+const port = process.argv[3];
 //
 // installs:
 // npm install --save-dev express moment winston winston-daily-rotate-file serve-index
@@ -17,7 +19,11 @@ app.get('/'+root+'/', (req, res) => {
 app.get('/'+root+'/config.js', (req, res) => {
 	fs.readFile(path.join(__dirname,root,'config.js'), 'ascii', (err, data) => {
 		if(err) throw err;
-		res.send(data+'\nconst server_side_search = true;');
+		add_lines = [
+			'const server_side_search = true;',
+			`const server_port = ${port};`
+		];
+		res.send(data+'\n'+add_lines.join('\n'));
 	});
 });
 app.use('/'+root+'/',serveIndex(path.join(__dirname,root),{'icons': true}));
@@ -60,39 +66,29 @@ import_js('resources/search.js');
 //
 app.get('/'+root+'/query', (req, res) => {
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
-	if( ! req.query.token ) {
-		res.status(500)
-		res.send('Token not defined');
-		print( `ip: ${ip} token undefined`);
-	} else if( req.query.token != token ) {
-		res.status(500)
-		res.send('Wrong token');
-		print( `ip: ${ip} wrong token`);
+	if( req.query.ping ) {
+		res.send('Server is ready');
+		print( `ip: ${ip} ping`);
+	} else if( req.query.keywords ) {
+		const keywords = req.query.keywords.split(' ');
+		print( `ip: ${ip} keywords: ${keywords}`);
+		const add_year = function ( year, _res ) {
+			_res.write(JSON.stringify(['add_year',year])+'\n');
+		};
+		const add_paper = function ( dir, paper, title, show_key, _res ) {
+			_res.write(JSON.stringify(['add_paper',dir,paper,title,show_key])+'\n');
+		};
+		const add_snippet = function ( text, _res, snippet_id ) {
+			_res.write(JSON.stringify(['add_snippet',text,null,snippet_id])+'\n');
+		};
+		result = search ( keywords, add_year, add_paper, add_snippet, res, import_js );
+		res.write(JSON.stringify(['done',result]));
+		res.end();
 	} else {
-		if( req.query.ping ) {
-			res.send('Server is ready');
-			print( `ip: ${ip} ping`);
-		} else if( req.query.array ) {
-			const keywords = req.query.array.split(' ');
-			print( `ip: ${ip} keywords: ${keywords}`);
-			const add_year = function ( year, _res ) {
-				_res.write(JSON.stringify(['add_year',year])+'\n');
-			};
-			const add_paper = function ( dir, paper, title, show_key, _res ) {
-				_res.write(JSON.stringify(['add_paper',dir,paper,title,show_key])+'\n');
-			};
-			const add_snippet = function ( text, _res, snippet_id ) {
-				_res.write(JSON.stringify(['add_snippet',text,null,snippet_id])+'\n');
-			};
-			result = search ( keywords, add_year, add_paper, add_snippet, res, import_js );
-			res.write(JSON.stringify(['done',result]));
-			res.end();
-		} else {
-			res.send('Array not defined');
-		}
+		res.send('Array not defined');
 	}
 });
 //
-app.listen(server_port, () => {
-	print(`server listening at http://localhost:${server_port}/${root}/`)
+app.listen(port, () => {
+	print(`server listening at http://localhost:${port}/${root}/`)
 });

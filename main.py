@@ -376,6 +376,7 @@ if __name__ == '__main__':
 	parser.add_argument('root', help='Root directory')
 	parser.add_argument('--clean', help='Clean flag')
 	parser.add_argument('--server', action='store_true')
+	parser.add_argument('--port', type=int, default=3600, help='Server port')
 	args = parser.parse_args()
 	root = args.root
 	#
@@ -384,7 +385,7 @@ if __name__ == '__main__':
 		gb_mem = virtual_memory().total / 1024 / 1024 / 1024
 		using_mb = int(0.85 * gb_mem * 1024)
 		_print( f'{"%.2f" % gb_mem} GB memory detected, setting max to {"%.2f" % (using_mb/1024)} GB...' )
-		subprocess.call(f'node server.js {root}',shell=True,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
+		subprocess.call(f'node server.js {root} {args.port}',shell=True,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
 		sys.exit()
 	#
 	# Load parameters
@@ -401,7 +402,6 @@ if __name__ == '__main__':
 	journal_table_file = config['DEFAULT']['journal_table'] if config.has_option('DEFAULT','journal_table') else None
 	enable_search = config['DEFAULT']['enable_search'] == 'yes'
 	realtime_search = config['DEFAULT']['realtime_search'] == 'yes'
-	server_port = config['DEFAULT']['server_port']
 	num_max_search_hit = int(config['DEFAULT']['num_max_search_hit'])
 	show_all = config['DEFAULT']['show_all'] == 'yes'
 	word_window_size = int(config['DEFAULT']['word_window_size'])
@@ -828,8 +828,6 @@ const papers_yearly = {1};
 		file.write(papers_js)
 	#
 	config_js = ''
-	config_js += f'const token = "{secrets.token_urlsafe(8)};"\n'
-	config_js += f'const server_port = {server_port};\n'
 	config_js += f'const num_max_search_hit = {num_max_search_hit};\n'
 	config_js += f'const show_all = {"true" if show_all else "false"};\n'
 	config_js += f'const word_window_size = {word_window_size};\n'
