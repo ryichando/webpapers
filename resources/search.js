@@ -230,10 +230,10 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 								break;
 							}
 						}
-					}
-					paper_pass.push(flag);
-					if( flag ) {
-						highlights['journal'] = keywords_dict['journal'];
+						paper_pass.push(flag);
+						if( flag ) {
+							highlights['journal'] = keywords_dict['journal'];
+						}
 					}
 				}
 				//
