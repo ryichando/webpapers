@@ -610,6 +610,9 @@ if __name__ == '__main__':
 							if answer == 'yes':
 								do_merge = True
 								break
+							if answer == 'no':
+								do_merge = False
+								break
 							elif answer == 'yes_always':
 								do_merge = True
 								merge_always = True
