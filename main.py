@@ -705,6 +705,7 @@ if __name__ == '__main__':
 				_print( f'{num_remainings} duplicates remaining...' )
 			for key in remove_keys:
 				del database[key]
+		sys.exit()
 	#
 	# If no valid directory is found exit the program
 	if not len(database):
