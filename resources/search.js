@@ -166,7 +166,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				let paper_pass = [];
 				let title_highlights = [];
 				let show_key = false;
-				if( keywords_dict['title'].length ) {
+				if( keywords_dict['title'].length && papers[dir]['title'] != undefined ) {
 					let flag = true;
 					let title = papers[dir]['title'].toLowerCase();
 					for (const word of keywords_dict['title'] ) {
