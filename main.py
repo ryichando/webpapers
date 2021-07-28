@@ -711,6 +711,18 @@ if __name__ == '__main__':
 	if not len(database):
 		sys.exit(0)
 	#
+	# Check that database is not corrupted
+	not_in_database_list = []
+	for year in database_yearly:
+		for dir in database_yearly[year]:
+			if dir not in database.keys():
+				not_in_database_list.append(dir)
+	#
+	if not_in_database_list:
+		for dir in not_in_database_list:
+			print( f'{dir} not in databse!' )
+		sys.exit()
+	#
 	# Generate HTML
 	with open('{}/template.html'.format(resource_dir),'r') as template:
 		data = template.read()
