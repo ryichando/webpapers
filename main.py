@@ -178,7 +178,11 @@ def process_directory( root, dir ):
 		if file.endswith('.bib'):
 			#
 			bib = file
-			bib_data = parse_file(mkpath(root,dir,bib))
+			try:
+				bib_data = parse_file(mkpath(root,dir,bib))
+			except:
+				_print( f'Parsing bibtex failed. Check the file: {mkpath(root,dir,bib)}' )
+				sys.exit()
 			bib_entry = bib_data.entries[list(bib_data.entries)[0]]
 			fields = bib_entry.fields
 			#
@@ -475,7 +479,7 @@ if __name__ == '__main__':
 					broken_list[dir] = e
 					continue
 				if e['volume'] and e['number']:
-					matches = re.findall(r'volume\/(\d.)\/(\d)',dir)
+					matches = re.findall(r'volume\/(\d*)\/(\d*)',dir)
 					if matches:
 						volume = int(matches[0][0])
 						number = int(matches[0][1])
@@ -493,10 +497,6 @@ if __name__ == '__main__':
 						inconsistent_list.append(dir)
 						logger.info( f'WARNING: Inconsistent year! ({_year} != {year})' )
 				#
-				if year in database_yearly.keys():
-					database_yearly[year].append(dir)
-				else:
-					database_yearly[year] = [dir]
 				database[dir] = e | { 'tmp_idx' : tmp_idx }
 				tmp_idx += 1
 	#
@@ -606,6 +606,9 @@ if __name__ == '__main__':
 							if answer == 'yes':
 								do_merge = True
 								break
+							if answer == 'no':
+								do_merge = False
+								break
 							elif answer == 'yes_always':
 								do_merge = True
 								merge_always = True
@@ -698,10 +701,19 @@ if __name__ == '__main__':
 				_print( f'{num_remainings} duplicates remaining...' )
 			for key in remove_keys:
 				del database[key]
+			sys.exit()
 	#
 	# If no valid directory is found exit the program
 	if not len(database):
 		sys.exit(0)
+	#
+	# Build database_yearly
+	for dir,entry in database.items():
+		year = entry['year']
+		if year in database_yearly.keys():
+			database_yearly[year].append(dir)
+		else:
+			database_yearly[year] = [dir]
 	#
 	# Generate HTML
 	with open('{}/template.html'.format(resource_dir),'r') as template:

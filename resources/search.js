@@ -156,6 +156,10 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			dirs = papers_yearly[year];
 			for( let dir of dirs ) {
 				//
+				if( ! (dir in papers )) {
+					console.log( `WARNING: papers["${dir}"] is undefined.` );
+				}
+				//
 				paper_idx = data_map[dir];
 				paper_found = false;
 				//
@@ -163,7 +167,6 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				let title_highlights = [];
 				let show_key = false;
 				if( keywords_dict['title'].length ) {
-					//
 					let flag = true;
 					let title = papers[dir]['title'].toLowerCase();
 					for (const word of keywords_dict['title'] ) {
