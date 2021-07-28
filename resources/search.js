@@ -24,7 +24,8 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 		'word' : [],
 		'title' : [],
 		'key' : [],
-		'year' : []
+		'year' : [],
+		'author' : [],
 	};
 	//
 	let has_content = false;
@@ -38,6 +39,8 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			mode = 'key';
 		} else if ( word == 'year:' ) {
 			mode = 'year';
+		} else if ( word == 'author:' ) {
+			mode = 'author';
 		} else {
 			if( mode == 'word') {
 				has_content = true;
@@ -200,6 +203,18 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 					for (const y of keywords_dict['year'] ) {
 						if( year == Number(y) ) {
 							flag = true;
+							break;
+						}
+					}
+					paper_pass.push(flag);
+				}
+				//
+				if( keywords_dict['author'].length ) {
+					let flag = true;
+					let authors = papers[dir]['authors'].toLowerCase();
+					for (const word of keywords_dict['author'] ) {
+						if( authors.indexOf(word) < 0 ) {
+							flag = false;
 							break;
 						}
 					}
