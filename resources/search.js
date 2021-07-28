@@ -156,6 +156,10 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			dirs = papers_yearly[year];
 			for( let dir of dirs ) {
 				//
+				if( papers[dir] == undefined ) {
+					console.log( `WARNING: papers[${dir}] is undefined.` );
+				}
+				//
 				paper_idx = data_map[dir];
 				paper_found = false;
 				//
@@ -163,20 +167,18 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				let title_highlights = [];
 				let show_key = false;
 				if( keywords_dict['title'].length ) {
-					if( 'title' in papers[dir] ) {
-						let flag = true;
-						let title = papers[dir]['title'].toLowerCase();
-						for (const word of keywords_dict['title'] ) {
-							if( title.indexOf(word.toLowerCase()) < 0 ) {
-								flag = false;
-								break;
-							}
+					let flag = true;
+					let title = papers[dir]['title'].toLowerCase();
+					for (const word of keywords_dict['title'] ) {
+						if( title.indexOf(word.toLowerCase()) < 0 ) {
+							flag = false;
+							break;
 						}
-						if( flag ) {
-							title_highlights = keywords_dict['title'];
-						}
-						paper_pass.push(flag);
 					}
+					if( flag ) {
+						title_highlights = keywords_dict['title'];
+					}
+					paper_pass.push(flag);
 				}
 				//
 				if( keywords_dict['key'].length ) {
