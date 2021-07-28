@@ -2,7 +2,7 @@
 import os, subprocess, sys, argparse, pikepdf, shutil, latexcodec, glob, time, signal, urllib.request, translitcodec, codecs
 from pybtex.database import parse_file, BibliographyData
 from pathlib import Path
-from main import replace_text_by_dictionary
+from main import remove_special_chars
 #
 # python3 fetch.py --bib_path ~/paper_journal.bib --root ~/journal_root --watch_dir ~/Downloads
 #
@@ -25,12 +25,6 @@ def safe_remove( path ):
 	except:
 		pass
 #
-def remove_curly_bracket( text ):
-	return replace_text_by_dictionary(text,{
-		'{' : '',
-		'}' : '',
-	})
-#
 def normalize( text ):
 	return codecs.encode(text,'translit/short')
 #
@@ -39,7 +33,7 @@ def download( root, entry, watch_dir ):
 	fields = entry.fields
 	persons = entry.persons
 	authors = persons['author']
-	lastname = remove_curly_bracket(authors[0].last_names[0].lower().encode("ascii","ignore").decode('latex'))
+	lastname = remove_special_chars(authors[0].last_names[0].lower().encode("ascii","ignore").decode('latex'))
 	lastname = normalize(lastname)
 
 	dirname = lastname+str(fields['year'])
