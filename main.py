@@ -479,7 +479,7 @@ if __name__ == '__main__':
 					broken_list[dir] = e
 					continue
 				if e['volume'] and e['number']:
-					matches = re.findall(r'volume\/(\d.)\/(\d)',dir)
+					matches = re.findall(r'volume\/(\d.)\/(\d.)',dir)
 					if matches:
 						volume = int(matches[0][0])
 						number = int(matches[0][1])
