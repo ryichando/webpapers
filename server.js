@@ -75,8 +75,8 @@ app.get('/'+root+'/query', (req, res) => {
 		const add_year = function ( year, _res ) {
 			_res.write(JSON.stringify(['add_year',year])+'\n');
 		};
-		const add_paper = function ( dir, paper, title, show_key, _res ) {
-			_res.write(JSON.stringify(['add_paper',dir,paper,title,show_key])+'\n');
+		const add_paper = function ( dir, paper, highlights, show_key, _res ) {
+			_res.write(JSON.stringify(['add_paper',dir,paper,highlights,show_key])+'\n');
 		};
 		const add_snippet = function ( text, _res, snippet_id ) {
 			_res.write(JSON.stringify(['add_snippet',text,null,snippet_id])+'\n');

@@ -26,6 +26,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 		'key' : [],
 		'year' : [],
 		'author' : [],
+		'journal' : [],
 	};
 	//
 	let has_content = false;
@@ -41,6 +42,8 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			mode = 'year';
 		} else if ( word == 'author:' ) {
 			mode = 'author';
+		} else if ( word == 'journal:' ) {
+			mode = 'journal';
 		} else {
 			if( mode == 'word') {
 				has_content = true;
@@ -74,17 +77,9 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 		return 'Not found (word not in dictionary)';
 	}
 	//
-	const append_paper = function ( dir, entries, title_highlights=null, show_key=false ) {
+	const append_paper = function ( dir, entries, highlights=null, show_key=false ) {
 		//
-		title = papers[dir]['title'];
-		for( const w of title_highlights ) {
-			const i = title.toLowerCase().indexOf(w.toLowerCase());
-			if( i >= 0 ) {
-				title = title.substr(0,i)+'<em>'+title.substr(i,w.length)+'</em>'+title.substr(i+w.length,title.length);
-			}
-		}
-		//
-		add_paper(dir,papers[dir],title,show_key,param);
+		add_paper(dir,papers[dir],highlights,show_key,param);
 		//
 		const margin_window = 10;
 		for( const elm of entries ) {
@@ -167,7 +162,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				paper_found = false;
 				//
 				let paper_pass = [];
-				let title_highlights = [];
+				let highlights = {};
 				let show_key = false;
 				if( keywords_dict['title'].length ) {
 					let flag = true;
@@ -179,7 +174,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						}
 					}
 					if( flag ) {
-						title_highlights = keywords_dict['title'];
+						highlights['title'] = keywords_dict['title'];
 					}
 					paper_pass.push(flag);
 				}
@@ -195,6 +190,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 					paper_pass.push(flag);
 					if( flag ) {
 						show_key = true;
+						highlights['key'] = keywords_dict['key'];
 					}
 				}
 				//
@@ -219,6 +215,24 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						}
 					}
 					paper_pass.push(flag);
+					if( flag ) {
+						highlights['author'] = keywords_dict['author'];
+					}
+				}
+				//
+				if( keywords_dict['journal'].length ) {
+					let flag = true;
+					let journal = papers[dir]['journal'].toLowerCase();
+					for (const word of keywords_dict['journal'] ) {
+						if( journal.indexOf(word) < 0 ) {
+							flag = false;
+							break;
+						}
+					}
+					paper_pass.push(flag);
+					if( flag ) {
+						highlights['journal'] = keywords_dict['journal'];
+					}
 				}
 				//
 				let entries = [];
@@ -270,7 +284,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						add_year(year,param);
 						year_found = true;
 					}
-					append_paper(dir,entries,title_highlights,show_key);
+					append_paper(dir,entries,highlights,show_key);
 					if( entries.length ) {
 						num_found += entries.length;
 					} else {
