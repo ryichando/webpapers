@@ -156,7 +156,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 			dirs = papers_yearly[year];
 			for( let dir of dirs ) {
 				//
-				if( papers[dir] == undefined ) {
+				if( ! (dir in papers[dir] )) {
 					console.log( `WARNING: papers[${dir}] is undefined.` );
 				}
 				//
