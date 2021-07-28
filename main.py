@@ -497,10 +497,6 @@ if __name__ == '__main__':
 						inconsistent_list.append(dir)
 						logger.info( f'WARNING: Inconsistent year! ({_year} != {year})' )
 				#
-				if year in database_yearly.keys():
-					database_yearly[year].append(dir)
-				else:
-					database_yearly[year] = [dir]
 				database[dir] = e | { 'tmp_idx' : tmp_idx }
 				tmp_idx += 1
 	#
@@ -711,17 +707,13 @@ if __name__ == '__main__':
 	if not len(database):
 		sys.exit(0)
 	#
-	# Check that database is not corrupted
-	not_in_database_list = []
-	for year in database_yearly:
-		for dir in database_yearly[year]:
-			if dir not in database.keys():
-				not_in_database_list.append(dir)
-	#
-	if not_in_database_list:
-		for dir in not_in_database_list:
-			print( f'{dir} not in databse!' )
-		sys.exit()
+	# Build database_yearly
+	for dir,entry in database.items():
+		year = entry['year']
+		if year in database_yearly.keys():
+			database_yearly[year].append(dir)
+		else:
+			database_yearly[year] = [dir]
 	#
 	# Generate HTML
 	with open('{}/template.html'.format(resource_dir),'r') as template:
