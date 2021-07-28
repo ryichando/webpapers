@@ -123,11 +123,11 @@ def process_directory( root, dir ):
 	doi = None
 	abstract = None
 	year = 0
-	title = None
+	title = 'Untitled'
 	pdf = 'main.pdf'
 	volume = None
 	number = None
-	authors = None
+	authors = 'Unknown'
 	journal = None
 	image_path = None
 	pdf_broken = False

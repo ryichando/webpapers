@@ -106,7 +106,7 @@
 						// For each paper
 						dirs = papers_yearly[year];
 						for (const dir of dirs) {
-							add_paper(dir,papers[dir],papers[dir]['title'],false);
+							add_paper(dir,papers[dir],{},false);
 						}
 					}
 				}
@@ -145,7 +145,19 @@
 				g_body.appendChild(year_header);
 			}
 			//
-			function add_paper( dir, paper, title, show_key, param ) {
+			function add_paper( dir, paper, highlights, show_key, param ) {
+				//
+				const highlight_text = (type,text,highlights) => {
+					if( type in highlights ) {
+						for( const w of highlights[type] ) {
+							const i = text.toLowerCase().indexOf(w.toLowerCase());
+							if( i >= 0 ) {
+								text = text.substr(0,i)+'<em>'+text.substr(i,w.length)+'</em>'+text.substr(i+w.length,text.length);
+							}
+						}
+					}
+					return text;
+				};
 				//
 				// Create paper row
 				let paper_element = document.createElement('div'); {
@@ -176,18 +188,21 @@
 						//
 						// Create title
 						let title_element = document.createElement('div');
-						title_element.innerHTML = `<h5>${title}</h5>`;
+						let title = paper['title'];
+						title_element.innerHTML = `<h5>${highlight_text('title',title,highlights)}</h5>`;
 						title_element.id = dir+'-title';
 						body_element.appendChild(title_element);
 						//
 						// Create journal
 						let journal_element = document.createElement('div');
-						journal_element.innerHTML = `${paper['journal']} (${paper['year']})`;
+						let journal = paper['journal'];
+						journal_element.innerHTML = `${highlight_text('journal',journal,highlights)} (${paper['year']})`;
 						body_element.appendChild(journal_element);
 						//
 						// Create authors
 						let authors_element = document.createElement('div');
-						authors_element.innerHTML = `${paper['authors']}`;
+						let authors = paper['authors'];
+						authors_element.innerHTML = `${highlight_text('author',authors,highlights)}`;
 						body_element.appendChild(authors_element);
 						//
 						files_html = '';
@@ -227,7 +242,7 @@
 						if( files_html ) files_html += ' ';
 						files_html += 
 							`<div class="badge badge-pill badge-light border border-danger" id="link-badge">`+
-							`<a class="text-danger" href="${dir}/">${dir}</a>`+'</div>'
+							`<a class="text-danger" href="${dir}/">${highlight_text('key',dir,highlights)}</a>`+'</div>'
 						//
 						let files_element = document.createElement('div');
 						files_element.innerHTML = files_html;
