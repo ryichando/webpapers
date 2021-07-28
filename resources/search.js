@@ -221,12 +221,14 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				}
 				//
 				if( keywords_dict['journal'].length ) {
-					let flag = true;
-					let journal = papers[dir]['journal'].toLowerCase();
-					for (const word of keywords_dict['journal'] ) {
-						if( journal.indexOf(word) < 0 ) {
-							flag = false;
-							break;
+					if( 'journal' in papers[dir] ) {
+						let flag = true;
+						let journal = papers[dir]['journal'].toLowerCase();
+						for (const word of keywords_dict['journal'] ) {
+							if( journal.indexOf(word) < 0 ) {
+								flag = false;
+								break;
+							}
 						}
 					}
 					paper_pass.push(flag);
