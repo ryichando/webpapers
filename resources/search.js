@@ -221,7 +221,7 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				}
 				//
 				if( keywords_dict['journal'].length ) {
-					if( 'journal' in papers[dir] ) {
+					if( 'journal' in papers[dir] && papers[dir]['journal'] != null ) {
 						let flag = true;
 						let journal = papers[dir]['journal'].toLowerCase();
 						for (const word of keywords_dict['journal'] ) {
