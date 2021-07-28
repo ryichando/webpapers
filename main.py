@@ -178,7 +178,11 @@ def process_directory( root, dir ):
 		if file.endswith('.bib'):
 			#
 			bib = file
-			bib_data = parse_file(mkpath(root,dir,bib))
+			try:
+				bib_data = parse_file(mkpath(root,dir,bib))
+			except:
+				_print( f'Parsing bibtex failed. Check the file: {mkpath(root,dir,bib)}' )
+				sys.exit()
 			bib_entry = bib_data.entries[list(bib_data.entries)[0]]
 			fields = bib_entry.fields
 			#
