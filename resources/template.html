@@ -207,6 +207,22 @@
 						//
 						files_html = '';
 						//
+						// [PDF]
+						if( paper['pdf'] ) {
+							if( files_html ) files_html += ' ';
+							files_html +=
+							'<div class="badge badge-pill badge-light border border-primary" id="link-badge">'+
+							`<a href="${dir+'/'+paper['pdf']}" target="_blank" id="link">PDF</a>`+'</div>'
+						}
+						//
+						// [Bib]
+						if( paper['bib'] ) {
+							if( files_html ) files_html += ' ';
+							files_html +=
+							'<div class="badge badge-pill badge-light border border-primary" id="link-badge">'+
+							`<a href="${dir+'/'+paper['bib']}" target="_blank" id="link">Bib</a>`+'</div>'
+						}
+						//
 						// video
 						for (const video of paper['videos']) {
 							if( files_html ) files_html += ' ';
