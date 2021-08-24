@@ -68,6 +68,7 @@ function toArrayBuffer(buf) {
 	for (let i = 0; i < buf.length; ++i) view[i] = buf[i];
 	return ab;
 }
+console.log('Loading array.bin')
 data_array = new Int32Array(toArrayBuffer(fs.readFileSync(root+'/array.bin')))
 import_js('config.js');
 import_js('resources/search.js');
