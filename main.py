@@ -725,6 +725,9 @@ if __name__ == '__main__':
 	data_map = {}
 	#
 	# Add search index
+	array_js = ''
+	array_bin = b''
+	data_js = ''
 	if enable_search:
 		#
 		word_index = 0
@@ -786,25 +789,6 @@ if __name__ == '__main__':
 					head_pos += 1
 				indices.append(line_indices)
 			#
-			# Future work
-			# base64.b64encode(b''.join([x.to_bytes(4,'little') for x in [10000,20000,30000,400000]])).decode()
-			#
-			# // https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer/12101012
-			# function toArrayBuffer(buf) {
-			# 	var ab = new ArrayBuffer(buf.length);
-			# 	var view = new Uint8Array(ab);
-			# 	for (var i = 0; i < buf.length; ++i) {
-			# 		view[i] = buf[i];
-			# 	}
-			# 	return ab;
-			# }
-			# const str = 'ECcAACBOAAAwdQAAgBoGAA==';
-			# const buffer = toArrayBuffer(Buffer.from(str,'base64'));
-			# let int32View = new Int32Array(buffer);
-			# for (let i = 0; i < int32View.length; i+=1) {
-			# 	console.log(int32View[i]);
-			# }
-			#
 			data_index.append(len(data_array))
 			data_array.append(len(indices))
 			for x in indices:
@@ -824,14 +808,18 @@ if __name__ == '__main__':
 				file.write(additional_words_data)
 		#
 		# Write word table
-		data_js = ''
-		data_js += 'const data_array = {};\n'.format(json.dumps(data_array))
+		array_js = 'let data_array = {};\n'.format(json.dumps(data_array))
+		array_bin = b''.join([x.to_bytes(4,'little') for x in data_array])
 		data_js += 'const data_index = {};\n'.format(json.dumps(data_index))
 		data_js += 'const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) )
 		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
 		data_js += 'let data_words = {};\n'
 	#
 	# Generate Javascript file
+	with open(root+'/array.js','w') as file:
+		file.write(array_js)
+	with open(root+'/array.bin','wb') as file:
+		file.write(array_bin)
 	with open(root+'/data.js','w') as file:
 		file.write(data_js)
 	#

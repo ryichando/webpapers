@@ -73,6 +73,7 @@
 				return js;
 			}
 			if( typeof server_side_search == 'undefined' ) {
+				import_js('array.js');
 				import_js('data.js');
 			}
 			if( typeof server_side_search == 'undefined' || show_all ) {
