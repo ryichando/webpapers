@@ -98,6 +98,6 @@ app.get('/'+root+'/query', (req, res) => {
 	}
 });
 //
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
 	print(`server listening at http://localhost:${port}/${root}/`)
 });
