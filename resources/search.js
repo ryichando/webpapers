@@ -239,15 +239,37 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 				//
 				let entries = [];
 				if( keywords_dict['word'].length ) {
-					for( let i=0; i<data_0[paper_idx].length; ++i ) {
-						let min = data_0[paper_idx][i].length;
+					let head = data_index[paper_idx];
+					const num_lines = data_array[head++];
+					const num_words = [];
+					for( let i=0; i<num_lines; ++i ) {
+						num_words.push(data_array[head++]);
+					}
+					data_0 = [];
+					for( let i=0; i<num_lines; ++i ) {
+						let line_0 = [];
+						for( let j=0; j<num_words[i]; ++j ) {
+							line_0.push(data_array[head++]);
+						}
+						data_0.push(line_0);
+					}
+					data_1 = [];
+					for( let i=0; i<num_lines; ++i ) {
+						let line_1 = [];
+						for( let j=0; j<num_words[i]; ++j ) {
+							line_1.push(data_array[head++]);
+						}
+						data_1.push(line_1);
+					}
+					for( let i=0; i<data_0.length; ++i ) {
+						let min = num_words[i];
 						let max = 0;
 						let positions = [];
 						for( const idx of keywords_dict['word'] ) {
 							let pos = -1;
-							for( let j=0; j<data_0[paper_idx][i].length; ++j ) {
-								if( data_0[paper_idx][i][j] == idx ) {
-									pos = data_1[paper_idx][i][j];
+							for( let j=0; j<data_0[i].length; ++j ) {
+								if( data_0[i][j] == idx ) {
+									pos = data_1[i][j];
 									break;
 								}
 							}

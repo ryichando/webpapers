@@ -8,7 +8,7 @@
 # Server Mode:
 # > docker run -u $UID:$GID -v ${PWD}:/root -p 3600:3600 -ti --rm webpapers --server papers
 #
-import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal ,logging
+import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal ,logging, json
 import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
 from psutil import virtual_memory
 from PIL import Image
@@ -722,8 +722,6 @@ if __name__ == '__main__':
 			file.write(data)
 	#
 	# Build paper references
-	data_0_js = 'data_0 = [];\n'
-	data_1_js = 'data_1 = [];\n'
 	data_map = {}
 	#
 	# Add search index
@@ -750,8 +748,8 @@ if __name__ == '__main__':
 						if w not in word_dictionary:
 							word_dictionary.add(w)
 		#
-		data_0_js = 'data_0 = [\n'
-		data_1_js = 'data_1 = [\n'
+		data_array = []
+		data_index = []
 		idx = 0
 		_print( 'Analyzing...' )
 		for dir,paper in tqdm(database.items()):
@@ -807,12 +805,15 @@ if __name__ == '__main__':
 			# 	console.log(int32View[i]);
 			# }
 			#
-			data_0_js += "[{}],\n".format(
-				','.join(['['+','.join([ str(y[0]) for y in x ])+']' for x in indices])
-			)
-			data_1_js += "[{}],\n".format(
-				','.join(['['+','.join([ str(y[1]) for y in x ])+']' for x in indices])
-			)
+			data_index.append(len(data_array))
+			data_array.append(len(indices))
+			for x in indices:
+				data_array.append(len(x))
+			for x in indices:
+				data_array.extend([ y[0] for y in x ])
+			for x in indices:
+				data_array.extend([ y[1] for y in x ])
+			#
 			data_map[dir] = idx
 			idx += 1
 			#
@@ -823,17 +824,16 @@ if __name__ == '__main__':
 				file.write(additional_words_data)
 		#
 		# Write word table
-		data_0_js += '];\n'
-		data_1_js += '];\n'
-		#
-		data_1_js += 'const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) )
-		data_1_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
-		data_1_js += 'let data_words = {};\n'
+		data_js = ''
+		data_js += 'const data_array = {};\n'.format(json.dumps(data_array))
+		data_js += 'const data_index = {};\n'.format(json.dumps(data_index))
+		data_js += 'const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) )
+		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
+		data_js += 'let data_words = {};\n'
 	#
 	# Generate Javascript file
 	with open(root+'/data.js','w') as file:
-		file.write(data_0_js)
-		file.write(data_1_js)
+		file.write(data_js)
 	#
 	papers_js = '''
 const papers = {0};
