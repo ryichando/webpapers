@@ -13,10 +13,10 @@ const port = process.argv[3];
 // installs:
 // npm install --save-dev express moment winston winston-daily-rotate-file serve-index
 //
-app.get('/', (req, res) => {
+app.get('/'+root+'/', (req, res) => {
 	res.sendFile(path.join(__dirname,root,'index.html'));
 });
-app.get('/config.js', (req, res) => {
+app.get('/'+root+'/config.js', (req, res) => {
 	fs.readFile(path.join(__dirname,root,'config.js'), 'ascii', (err, data) => {
 		if(err) throw err;
 		add_lines = [
@@ -26,8 +26,8 @@ app.get('/config.js', (req, res) => {
 		res.send(data+'\n'+add_lines.join('\n'));
 	});
 });
-app.use('/',serveIndex(path.join(__dirname,root),{'icons': true}));
-app.use('/',express.static(path.join(__dirname,root)));
+app.use('/'+root+'/',serveIndex(path.join(__dirname,root),{'icons': true}));
+app.use('/'+root+'/',express.static(path.join(__dirname,root)));
 //
 // https://stackoverflow.com/questions/11403953/winston-how-to-rotate-logs
 let winston = require('winston');
@@ -73,7 +73,7 @@ data_array = new Int32Array(toArrayBuffer(fs.readFileSync(root+'/array.bin')))
 import_js('config.js');
 import_js('resources/search.js');
 //
-app.get('/query', (req, res) => {
+app.get('/'+root+'/query', (req, res) => {
 	const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress 
 	if( req.query.ping ) {
 		res.send('Server is ready');
@@ -99,5 +99,5 @@ app.get('/query', (req, res) => {
 });
 //
 app.listen(port, '0.0.0.0', () => {
-	print(`server listening at http://localhost:${port}/`)
+	print(`server listening at http://localhost:${port}/${root}/`)
 });
