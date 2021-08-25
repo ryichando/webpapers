@@ -265,34 +265,46 @@ function search ( keywords, add_year, add_paper, add_snippet, param=null, import
 						let min = num_words[i];
 						let max = 0;
 						let positions = [];
+						let hit = false;
 						for( const idx of keywords_dict['word'] ) {
-							let pos = -1;
 							for( let j=0; j<data_0[i].length; ++j ) {
 								if( data_0[i][j] == idx ) {
-									pos = data_1[i][j];
+									hit = true;
 									break;
 								}
 							}
-							min = Math.min(min,pos)
-							max = Math.max(max,pos)
-							if( min < 0 ) {
-								break;
-							}
-							if( max - min > word_window_size ) {
-								min = -1;
-								break;
-							}
-							positions.push(pos);
+							if( hit ) break;
 						}
-						if( min >= 0 ) {
-							entries.push({
-								'i' : i,
-								'min' : min,
-								'max' : max,
-								'positions' : positions,
-								'tmp_index' : tmp_index,
-							});
-							tmp_index += 1;
+						if( hit ) {
+							for( const idx of keywords_dict['word'] ) {
+								let pos = -1;
+								for( let j=0; j<data_0[i].length; ++j ) {
+									if( data_0[i][j] == idx ) {
+										pos = data_1[i][j];
+										break;
+									}
+								}
+								min = Math.min(min,pos)
+								max = Math.max(max,pos)
+								if( min < 0 ) {
+									break;
+								}
+								if( max - min > word_window_size ) {
+									min = -1;
+									break;
+								}
+								positions.push(pos);
+							}
+							if( min >= 0 ) {
+								entries.push({
+									'i' : i,
+									'min' : min,
+									'max' : max,
+									'positions' : positions,
+									'tmp_index' : tmp_index,
+								});
+								tmp_index += 1;
+							}
 						}
 					}
 					if( data_words[dir] != undefined ) {
