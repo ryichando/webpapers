@@ -61,6 +61,15 @@ function print( text ) {
 //
 import_js('papers.js');
 import_js('data.js');
+//
+function toArrayBuffer(buf) {
+	let ab = new ArrayBuffer(buf.length);
+	let view = new Uint8Array(ab);
+	for (let i = 0; i < buf.length; ++i) view[i] = buf[i];
+	return ab;
+}
+console.log('Loading array.bin')
+data_array = new Int32Array(toArrayBuffer(fs.readFileSync(root+'/array.bin')))
 import_js('config.js');
 import_js('resources/search.js');
 //
@@ -89,6 +98,6 @@ app.get('/'+root+'/query', (req, res) => {
 	}
 });
 //
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
 	print(`server listening at http://localhost:${port}/${root}/`)
 });
