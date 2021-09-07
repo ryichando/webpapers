@@ -389,10 +389,9 @@ if __name__ == '__main__':
 	#
 	if args.server:
 		_print( 'Running server mode...' )
-		gb_mem = virtual_memory().total / 1024 / 1024 / 1024
-		using_mb = int(0.85 * gb_mem * 1024)
-		_print( f'{"%.2f" % gb_mem} GB memory detected, setting max to {"%.2f" % (using_mb/1024)} GB...' )
-		subprocess.call(f'node server.js {root} {args.port}',shell=True,env={'NODE_OPTIONS':f'--max-old-space-size={using_mb}'})
+		cmd = f'node server.js {root} {args.port}'
+		_print( cmd )
+		subprocess.call(cmd,shell=True)
 		sys.exit()
 	#
 	# Load parameters
