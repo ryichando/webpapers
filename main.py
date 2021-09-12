@@ -843,3 +843,4 @@ const papers_yearly = {1};
 	# Copy resources
 	run_command('cp -rf {} {}'.format(resource_dir,root))
 	logger.info( '--------- Done ---------')
+	print( 'Done!' )
