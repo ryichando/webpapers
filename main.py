@@ -722,17 +722,15 @@ if __name__ == '__main__':
 	#
 	# Build paper references
 	data_map = {}
+	data_array = []
+	data_index = []
+	idx = 0
+	word_index = 0
+	word_dictionary = load_dictionary('resources/words')
+	registered_stem = {}
+	registered_words = {}
 	#
-	# Add search index
-	array_js = ''
-	array_bin = b''
-	data_js = ''
 	if enable_search:
-		#
-		word_index = 0
-		word_dictionary = load_dictionary('resources/words')
-		registered_stem = {}
-		registered_words = {}
 		stemmer = nltk.PorterStemmer()
 		#
 		# Extend word dictionary
@@ -750,9 +748,6 @@ if __name__ == '__main__':
 						if w not in word_dictionary:
 							word_dictionary.add(w)
 		#
-		data_array = []
-		data_index = []
-		idx = 0
 		_print( 'Analyzing...' )
 		for dir,paper in tqdm(database.items()):
 			#
@@ -805,22 +800,29 @@ if __name__ == '__main__':
 			additional_words_data = f"data_words['{dir}'] = [{words}];"
 			with open(os.path.join(root,dir,'words.js'),'w') as file:
 				file.write(additional_words_data)
-		#
-		# Write word table
-		array_js = 'let data_array = {};\n'.format(json.dumps(data_array))
-		array_bin = b''.join([x.to_bytes(4,'little') for x in data_array])
-		data_js += 'const data_index = {};\n'.format(json.dumps(data_index))
-		data_js += 'const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) )
-		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
-		data_js += 'let data_words = {};\n'
 	#
-	# Generate Javascript file
-	with open(root+'/array.js','w') as file:
-		file.write(array_js)
-	with open(root+'/array.bin','wb') as file:
-		file.write(array_bin)
-	with open(root+'/data.js','w') as file:
-		file.write(data_js)
+	# Write word table
+	_print( 'writing "array.js"...' )
+	with open(root+'/array.js','w') as array_js:
+		array_js.write('let data_array = [')
+		for x in data_array:
+			array_js.write(f'{x},')
+		array_js.write('];\n')
+	#
+	_print( 'writing "array.bin"...' )
+	with open(root+'/array.bin','wb') as array_bin:
+		for x in data_array:
+			array_bin.write(x.to_bytes(4,'little'))
+	#
+	_print( 'writing "data.js"...' )
+	with open(root+'/data.js','w') as data_js:
+		data_js.write('const data_index = [')
+		for x in data_index:
+			data_js.write(f'{x},')
+		data_js.write('];\n')
+		data_js.write('const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) ))
+		data_js.write('const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ])))
+		data_js.write('let data_words = {};\n')
 	#
 	papers_js = '''
 const papers = {0};
