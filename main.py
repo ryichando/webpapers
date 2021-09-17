@@ -8,9 +8,8 @@
 # Server Mode:
 # > docker run -u $UID:$GID -v ${PWD}:/root -p 3600:3600 -ti --rm webpapers --server papers
 #
-import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal ,logging, json
-import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
-from psutil import virtual_memory
+import os, sys, configparser, subprocess, json, argparse, hashlib, latexcodec, time, signal ,logging
+import shutil, pikepdf, pdfdump, base64, nltk, re
 from PIL import Image
 from pybtex.database import parse_file
 from shlex import quote
@@ -29,6 +28,10 @@ logger = logging.getLogger(__name__)
 def _print( text ):
 	logger.info(text)
 	print(text)
+#
+def compute_md5( path ):
+	with open(path,'rb') as fp:
+		return hashlib.md5(fp.read()).hexdigest()
 #
 def replace_text_by_dictionary( text, dict ):
 	if dict:
@@ -121,6 +124,7 @@ def process_directory( root, dir ):
 	# Information list
 	bib = None
 	doi = None
+	md5 = None
 	abstract = None
 	year = 0
 	title = 'Untitled'
@@ -145,7 +149,9 @@ def process_directory( root, dir ):
 	if not os.path.exists(mkpath(root,dir,pdf)):
 		return None
 	#
-	if not check_valid_pdf(mkpath(root,dir,pdf)):
+	if check_valid_pdf(mkpath(root,dir,pdf)):
+		md5 = compute_md5(mkpath(root,dir,pdf))
+	else:
 		pdf_broken = True
 	#
 	for file in os.listdir(mkpath(root,dir)):
@@ -242,6 +248,12 @@ def process_directory( root, dir ):
 				journal = fix_jornal(fields['journal'].encode("ascii","ignore").decode('latex'))
 			elif 'booktitle' in fields:
 				journal = fix_jornal(fields['booktitle'].encode("ascii","ignore").decode('latex'))
+			#
+			html_bib = mkpath(root,dir,'bibtex.html')
+			with open(html_bib,'w') as fp:
+				fp.write('<pre>')
+				fp.write(open(mkpath(root,dir,file),'r').read())
+				fp.write('</pre>')
 		#
 		# List files and videos
 		if not file.startswith('.'):
@@ -349,6 +361,7 @@ def process_directory( root, dir ):
 		'volume' : safe_cast(volume,int) if volume else None,
 		'number' : safe_cast(number,int) if number else None,
 		'pdf' : pdf,
+		'md5' : md5,
 		'bib' : bib,
 		'doi' : doi,
 		'title' : title,
@@ -427,7 +440,7 @@ if __name__ == '__main__':
 		_print( f'Cleaning...{args.clean}' )
 		clean_lists = []
 		if args.clean == 'all' or args.clean == 'data':
-			clean_lists.extend(['index.html','data.js','papers.js','config.js'])
+			clean_lists.extend(['index.html','data.js','papers.js','config.js','bibtex.html'])
 		if args.clean == 'all' or args.clean == 'thumbnail':
 			clean_lists.append('thumbnails')
 		if args.clean == 'all' or args.clean == 'image':
@@ -448,6 +461,10 @@ if __name__ == '__main__':
 				if dir in clean_lists:
 					_print(f'Deleting {current_dir}/{dir}...')
 					shutil.rmtree(current_dir+'/'+dir)
+			for file in files:
+				if file in clean_lists:
+					_print(f'Deleting {current_dir}/{file}...')
+					os.remove(current_dir+'/'+file)
 		sys.exit(0)
 	#
 	# List all the file types supported
@@ -722,17 +739,15 @@ if __name__ == '__main__':
 	#
 	# Build paper references
 	data_map = {}
+	data_array = []
+	data_index = []
+	idx = 0
+	word_index = 0
+	word_dictionary = load_dictionary('resources/words')
+	registered_stem = {}
+	registered_words = {}
 	#
-	# Add search index
-	array_js = ''
-	array_bin = b''
-	data_js = ''
 	if enable_search:
-		#
-		word_index = 0
-		word_dictionary = load_dictionary('resources/words')
-		registered_stem = {}
-		registered_words = {}
 		stemmer = nltk.PorterStemmer()
 		#
 		# Extend word dictionary
@@ -750,9 +765,6 @@ if __name__ == '__main__':
 						if w not in word_dictionary:
 							word_dictionary.add(w)
 		#
-		data_array = []
-		data_index = []
-		idx = 0
 		_print( 'Analyzing...' )
 		for dir,paper in tqdm(database.items()):
 			#
@@ -805,22 +817,29 @@ if __name__ == '__main__':
 			additional_words_data = f"data_words['{dir}'] = [{words}];"
 			with open(os.path.join(root,dir,'words.js'),'w') as file:
 				file.write(additional_words_data)
-		#
-		# Write word table
-		array_js = 'let data_array = {};\n'.format(json.dumps(data_array))
-		array_bin = b''.join([x.to_bytes(4,'little') for x in data_array])
-		data_js += 'const data_index = {};\n'.format(json.dumps(data_index))
-		data_js += 'const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) )
-		data_js += 'const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ]))
-		data_js += 'let data_words = {};\n'
 	#
-	# Generate Javascript file
-	with open(root+'/array.js','w') as file:
-		file.write(array_js)
-	with open(root+'/array.bin','wb') as file:
-		file.write(array_bin)
-	with open(root+'/data.js','w') as file:
-		file.write(data_js)
+	# Write word table
+	_print( 'writing "array.js"...' )
+	with open(root+'/array.js','w') as array_js:
+		array_js.write('let data_array = [')
+		for x in data_array:
+			array_js.write(f'{x},')
+		array_js.write('];\n')
+	#
+	_print( 'writing "array.bin"...' )
+	with open(root+'/array.bin','wb') as array_bin:
+		for x in data_array:
+			array_bin.write(x.to_bytes(4,'little'))
+	#
+	_print( 'writing "data.js"...' )
+	with open(root+'/data.js','w') as data_js:
+		data_js.write('const data_index = [')
+		for x in data_index:
+			data_js.write(f'{x},')
+		data_js.write('];\n')
+		data_js.write('const data_map = {{ {} }};\n'.format(','.join([ f"'{x}' : {y}" for x,y in data_map.items()]) ))
+		data_js.write('const word_table = {{\n{}\n}};\n'.format(',\n'.join([ f"'{x}' : {y}" for x,y in registered_words.items() ])))
+		data_js.write('let data_words = {};\n')
 	#
 	papers_js = '''
 const papers = {0};
@@ -843,3 +862,4 @@ const papers_yearly = {1};
 	# Copy resources
 	run_command('cp -rf {} {}'.format(resource_dir,root))
 	logger.info( '--------- Done ---------')
+	print( 'Done!' )
