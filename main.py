@@ -250,10 +250,14 @@ def process_directory( root, dir ):
 				journal = fix_jornal(fields['booktitle'].encode("ascii","ignore").decode('latex'))
 			#
 			html_bib = mkpath(root,dir,'bibtex.html')
-			with open(html_bib,'w') as fp:
-				fp.write('<pre>')
-				fp.write(open(mkpath(root,dir,file),'r').read())
-				fp.write('</pre>')
+			full_bib = mkpath(root,dir,file)
+			try:
+				with open(html_bib,'w') as fp:
+					fp.write('<pre>')
+					fp.write(open(full_bib,'r').read())
+					fp.write('</pre>')
+			except:
+				_print(f'Failed to read "{full_bib}"')
 		#
 		# List files and videos
 		if not file.startswith('.'):
