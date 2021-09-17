@@ -207,7 +207,7 @@
 						body_element.appendChild(authors_element);
 						//
 						let files_html = '';
-						let unique_id = `bibtex_${dir}`.replace('/','_');
+						let unique_id = `bibtex_${dir.replaceAll('/','_')}`;
 						//
 						// [PDF]
 						if( paper['pdf'] ) {
