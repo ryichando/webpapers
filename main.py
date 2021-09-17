@@ -8,9 +8,8 @@
 # Server Mode:
 # > docker run -u $UID:$GID -v ${PWD}:/root -p 3600:3600 -ti --rm webpapers --server papers
 #
-import os, sys, configparser, subprocess, json, argparse, latexcodec, time, signal ,logging, json
-import shutil, pikepdf, pdfdump, base64, nltk, secrets, re
-from psutil import virtual_memory
+import os, sys, configparser, subprocess, json, argparse, hashlib, latexcodec, time, signal ,logging
+import shutil, pikepdf, pdfdump, base64, nltk, re
 from PIL import Image
 from pybtex.database import parse_file
 from shlex import quote
@@ -29,6 +28,10 @@ logger = logging.getLogger(__name__)
 def _print( text ):
 	logger.info(text)
 	print(text)
+#
+def compute_md5( path ):
+	with open(path,'rb') as fp:
+		return hashlib.md5(fp.read()).hexdigest()
 #
 def replace_text_by_dictionary( text, dict ):
 	if dict:
@@ -121,6 +124,7 @@ def process_directory( root, dir ):
 	# Information list
 	bib = None
 	doi = None
+	md5 = None
 	abstract = None
 	year = 0
 	title = 'Untitled'
@@ -145,7 +149,9 @@ def process_directory( root, dir ):
 	if not os.path.exists(mkpath(root,dir,pdf)):
 		return None
 	#
-	if not check_valid_pdf(mkpath(root,dir,pdf)):
+	if check_valid_pdf(mkpath(root,dir,pdf)):
+		md5 = compute_md5(mkpath(root,dir,pdf))
+	else:
 		pdf_broken = True
 	#
 	for file in os.listdir(mkpath(root,dir)):
@@ -242,6 +248,12 @@ def process_directory( root, dir ):
 				journal = fix_jornal(fields['journal'].encode("ascii","ignore").decode('latex'))
 			elif 'booktitle' in fields:
 				journal = fix_jornal(fields['booktitle'].encode("ascii","ignore").decode('latex'))
+			#
+			html_bib = mkpath(root,dir,'bibtex.html')
+			with open(html_bib,'w') as fp:
+				fp.write('<pre>')
+				fp.write(open(mkpath(root,dir,file),'r').read())
+				fp.write('</pre>')
 		#
 		# List files and videos
 		if not file.startswith('.'):
@@ -349,6 +361,7 @@ def process_directory( root, dir ):
 		'volume' : safe_cast(volume,int) if volume else None,
 		'number' : safe_cast(number,int) if number else None,
 		'pdf' : pdf,
+		'md5' : md5,
 		'bib' : bib,
 		'doi' : doi,
 		'title' : title,
@@ -427,7 +440,7 @@ if __name__ == '__main__':
 		_print( f'Cleaning...{args.clean}' )
 		clean_lists = []
 		if args.clean == 'all' or args.clean == 'data':
-			clean_lists.extend(['index.html','data.js','papers.js','config.js'])
+			clean_lists.extend(['index.html','data.js','papers.js','config.js','bibtex.html'])
 		if args.clean == 'all' or args.clean == 'thumbnail':
 			clean_lists.append('thumbnails')
 		if args.clean == 'all' or args.clean == 'image':
@@ -448,6 +461,10 @@ if __name__ == '__main__':
 				if dir in clean_lists:
 					_print(f'Deleting {current_dir}/{dir}...')
 					shutil.rmtree(current_dir+'/'+dir)
+			for file in files:
+				if file in clean_lists:
+					_print(f'Deleting {current_dir}/{file}...')
+					os.remove(current_dir+'/'+file)
 		sys.exit(0)
 	#
 	# List all the file types supported
