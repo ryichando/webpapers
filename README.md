@@ -1,11 +1,5 @@
 <img src="https://raw.githubusercontent.com/ryichando/webpapers/master/resources/webpapers_logo.svg" alt="logo" width="250">
 
-A web-based paper organizer.
-
-# What it looks like?
-
-https://public.ryichando.graphics/~ryich/webpapers/example/sample.html
-
 # Why this thing is good?
 
 Simple and fast. Everything is on the browser; you can access the whole contents from anywhere (even with a smart phone when you are out of office) if you put it on a private web server (e.g., VPS/NAS). You may also share with collaborators via links. Of course you can locally use it if you do not own a private server.
