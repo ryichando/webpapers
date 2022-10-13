@@ -38,8 +38,6 @@ Put them into the `papers` directory.
     |   └── ...                 # Supplemental materials
     └── ...
 
-A corresponding layout for the example page can be seen at https://public.ryichando.graphics/~ryich/webpapers/example/
-
 Next, run the following commands
 
 ```bash
