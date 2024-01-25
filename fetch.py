@@ -1,7 +1,9 @@
 #
-import os, subprocess, sys, argparse, pikepdf, shutil, latexcodec, glob, time, signal, urllib.request, translitcodec, codecs
+import os, subprocess, sys, argparse, pikepdf, shutil, glob, time, signal, urllib.request, codecs
 from pybtex.database import parse_file, BibliographyData
 from pathlib import Path
+import webbrowser
+import translitcodec
 from main import remove_special_chars
 #
 # python3 fetch.py --bib_path ~/paper_journal.bib --root ~/journal_root --watch_dir ~/Downloads
@@ -60,7 +62,8 @@ def download( root, entry, watch_dir ):
 				continue
 		else:
 			save_file_list = os.listdir(watch_dir)
-			os.system('open http://www.google.com/search?query={}'.format('+'.join(fields['title'].split())))
+			url = 'http://www.google.com/search?query={}'.format('+'.join(fields['title'].split()))
+			webbrowser.open(url)
 			tmp_path = None
 			while True:
 				for file in os.listdir(watch_dir):
@@ -80,8 +83,8 @@ def download( root, entry, watch_dir ):
 				print(cmd)
 				subprocess.check_output(cmd,stderr=subprocess.STDOUT,timeout=30,shell=True)
 			except Exception as e:
-				 print(e)
-				 copy_original = True
+				print(e)
+				copy_original = True
 			#
 			if check_valid_pdf(new_path):
 				tmp_size = Path(tmp_path).stat().st_size

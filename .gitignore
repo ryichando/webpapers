@@ -9,3 +9,8 @@ node_modules
 __pycache__
 tmp
 log
+bin
+lib64
+include
+lib
+pyvenv.cfg
