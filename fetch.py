@@ -68,6 +68,10 @@ def download( root, entry, watch_dir ):
 			while True:
 				for file in os.listdir(watch_dir):
 					if file.endswith('.pdf') and file not in save_file_list:
+						if ' ' in file:
+							new_file = file.replace(' ', '_')
+							shutil.move(os.path.join(watch_dir,file),os.path.join(watch_dir,new_file))
+							file = new_file
 						tmp_path = os.path.join(watch_dir,file)
 						break
 				if tmp_path:
