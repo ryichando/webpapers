@@ -2,7 +2,7 @@ FROM python:3
 USER root
 
 RUN apt-get update
-RUN apt-get -y install ffmpeg poppler-utils nodejs npm
+RUN apt-get -y install pikepdf ffmpeg poppler-utils nodejs npm
 ENV TERM xterm
 
 ENV PYTHONDONTWRITEBYTECODE 1
